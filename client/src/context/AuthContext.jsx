@@ -9,6 +9,11 @@ export function AuthProvider({ children }) {
     return saved ? JSON.parse(saved) : null;
   });
 
+  function updateUser(updated) {
+    localStorage.setItem("user", JSON.stringify(updated));
+    setUser(updated);
+  }
+
   function saveSession(data) {
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
@@ -32,7 +37,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

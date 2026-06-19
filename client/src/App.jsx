@@ -8,6 +8,7 @@ import Signup from "./pages/auth/Signup";
 
 // Student pages — import the real ones as you build them
 import Tasks from "./pages/client/Tasks";
+import UserProfile from "./pages/client/Profile";
 // import Dashboard from "./pages/client/Dashboard";
 // import Assignments from "./pages/client/Assignments";
 // import Schedule from "./pages/client/Schedule";
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="reminders" element={<Placeholder title="Reminders" />} />
             <Route path="recommendations" element={<Placeholder title="AI recommendations" />} />
             <Route path="exams" element={<Placeholder title="Exams" />} />
+            <Route path="profile" element={<UserProfile />} />
           </Route>
 
           {/* ---------- Admin app (admins only) ---------- */}

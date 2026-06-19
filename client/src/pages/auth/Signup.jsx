@@ -18,7 +18,8 @@ export default function Signup() {
       await signup(fullName, email, password);
       navigate("/app");
     } catch (err) {
-      setError(err.response?.data?.message || "Sign up failed");
+       setError(err.response?.data?.message || err.message || "Sign up failed");
+       console.log("Signup error:", err);
     } finally {
       setLoading(false);
     }

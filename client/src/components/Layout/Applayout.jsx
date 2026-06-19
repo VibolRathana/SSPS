@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
+import { useAuth } from "../../context/AuthContext";
 
 const studentNav = [
   { to: "/app", label: "Dashboard", icon: LayoutGrid },
@@ -29,20 +30,25 @@ const adminNav = [
   { to: "/admin/security", label: "Security", icon: ShieldCheck },
 ];
 
-export default function AppLayout({ role = "student", user }) {
+export default function AppLayout({ role = "student" }) {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const items = role === "admin" ? adminNav : studentNav;
 
   const handleLogout = () => {
-    // TODO: clear your auth token / context here
+    logout();              // clears token + user from AuthContext
     navigate("/login");
   };
 
-  const currentUser =
-    user ||
-    (role === "admin"
-      ? { name: "Admin", email: "admin@university.edu", initials: "AD" }
-      : { name: "Alex Morgan", email: "alex.morgan@university.edu", initials: "AM" });
+  const initials = user?.fullName
+    ? user.fullName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+    : "U";
+
+  const currentUser = {
+    name: user?.fullName || "User",
+    email: user?.email || "",
+    initials,
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-50">
