@@ -23,6 +23,7 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     const { data } = await api.post("/auth/login", { email, password });
     saveSession(data);
+    return data.user;
   }
 
   async function signup(fullName, email, password) {

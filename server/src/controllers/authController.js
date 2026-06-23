@@ -4,7 +4,7 @@ import { User } from "../models/User.js";
 import { pool } from "../config/db.js";
 
 function createToken(user) {
-  return jwt.sign({ id: user.user_id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ id: user.user_id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
 }
 
 export async function register(req, res) {
@@ -42,7 +42,38 @@ export async function login(req, res) {
     await user.save();
 
     const token = createToken(user);
-    res.json({ message: "Logged in", token, user: { id: user.user_id, fullName: user.full_name, email: user.email, role: user.role } });
+    res.json({ message: "Logged in", token, user: { id: user.user_id, fullName: user.full_name, email: user.email, role: user.role, notificationsEnabled: user.notifications_enabled ?? true } });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+export async function changePassword(req, res) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ message: "Current and new password are required" });
+    if (newPassword.length < 6)
+      return res.status(400).json({ message: "New password must be at least 6 characters" });
+
+    const user = await User.findByPk(req.user.id);
+    const match = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!match) return res.status(401).json({ message: "Current password is incorrect" });
+
+    user.password_hash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+export async function toggleNotifications(req, res) {
+  try {
+    const user = await User.findByPk(req.user.id);
+    user.notifications_enabled = !user.notifications_enabled;
+    await user.save();
+    res.json({ notificationsEnabled: user.notifications_enabled });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -58,23 +89,11 @@ export async function updateProfile(req, res) {
     const u = await User.findByPk(req.user.id);
     res.json({
       message: "Profile updated",
-      user: { id: u.user_id, fullName: u.full_name, email: u.email, role: u.role, major: u.major, phone: u.phone, bio: u.bio },
+      user: { id: u.user_id, fullName: u.full_name, email: u.email, role: u.role, major: u.major, phone: u.phone, bio: u.bio, notificationsEnabled: u.notifications_enabled ?? true },
     });
   } catch (err) {
     if (err.name === "SequelizeUniqueConstraintError")
       return res.status(409).json({ message: "That email is already in use" });
-    res.status(500).json({ message: err.message });
-  }
-}
-
-export async function getStats(req, res) {
-  try {
-    const id = req.user.id;
-    const [[t]] = await pool.query("SELECT COUNT(*) AS c FROM tasks WHERE user_id = ? AND status = 'Completed'", [id]);
-    const [[h]] = await pool.query("SELECT COALESCE(SUM(hours),0) AS c FROM study_sessions WHERE user_id = ?", [id]);
-    const [[a]] = await pool.query("SELECT COUNT(*) AS c FROM assignments WHERE user_id = ? AND status IN ('Submitted','Graded')", [id]);
-    res.json({ tasksCompleted: t.c, studyHours: Number(h.c), achievements: a.c });
-  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 }

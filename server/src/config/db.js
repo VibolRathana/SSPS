@@ -3,7 +3,6 @@ import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 dotenv.config();
 
-// Raw pool — still used by controllers not yet migrated
 export const pool = mysql.createPool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT || 3306,
@@ -14,7 +13,6 @@ export const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
-// Sequelize — the new ORM connection
 export const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,

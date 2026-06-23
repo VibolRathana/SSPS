@@ -1,6 +1,6 @@
 import React from "react";
-import { Bell } from "lucide-react";
-
+import { Bell, Menu } from "lucide-react";
+import { useSidebar } from "../../context/SidebarContext";
 
 export default function Topbar({
   title,
@@ -10,14 +10,27 @@ export default function Topbar({
   hasNotifications = false,
   actions,
 }) {
+  const { toggle } = useSidebar();
+
   return (
-    <header className="sticky top-0 z-40 flex h-18.5 items-center justify-between border-b border-slate-200 bg-white/85 px-8 backdrop-blur">
-      <div>
-        <h2 className="text-xl font-bold tracking-tight text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
+    <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white/85 px-4 sm:px-8 backdrop-blur">
+      <div className="flex items-center gap-3 min-w-0">
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={toggle}
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 md:hidden"
+          aria-label="Open menu"
+        >
+          <Menu size={18} />
+        </button>
+
+        <div className="min-w-0">
+          <h2 className="truncate text-lg font-bold tracking-tight text-slate-900 sm:text-xl">{title}</h2>
+          {subtitle && <p className="truncate mt-0.5 text-xs text-slate-500">{subtitle}</p>}
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         {actions}
 
         {onBell && (
@@ -34,7 +47,7 @@ export default function Topbar({
         )}
 
         {user && (
-          <div className="grid h-10 w-10 place-items-center rounded-full bg-linear-to-b from-indigo-500 to-indigo-700 text-sm font-bold text-white">
+          <div className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full bg-linear-to-b from-indigo-500 to-indigo-700 text-sm font-bold text-white">
             {user.initials}
           </div>
         )}
