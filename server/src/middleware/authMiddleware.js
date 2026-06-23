@@ -11,3 +11,15 @@ export function protect(req, res, next) {
     res.status(401).json({ message: "Not authorized, token invalid" });
   }
 }
+
+export function authorize(...allowedRoles) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authorized, please log in" });
+    }
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Access denied: admins only" });
+    }
+    next();
+  };
+}

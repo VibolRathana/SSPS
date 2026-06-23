@@ -25,7 +25,8 @@ CREATE TABLE users (
   phone            VARCHAR(30),
   bio              VARCHAR(255),
   avatar_url       VARCHAR(255),
-  available_hours  INT NOT NULL DEFAULT 4,
+  available_hours       INT NOT NULL DEFAULT 4,
+  notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_login       TIMESTAMP NULL,
   CONSTRAINT chk_users_available_hours CHECK (available_hours > 0)
@@ -85,6 +86,7 @@ CREATE TABLE assignments (
   description    TEXT,
   due_date       DATE NOT NULL,
   due_time       TIME DEFAULT '23:59:00',
+  priority       ENUM('Low','Medium','High')                        NOT NULL DEFAULT 'Medium',
   status         ENUM('Pending','In Progress','Submitted','Graded') NOT NULL DEFAULT 'Pending',
   created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_assignments_user   FOREIGN KEY (user_id)
@@ -122,10 +124,12 @@ CREATE TABLE reminders (
   user_id        INT NOT NULL,
   reminder_type  ENUM('Task','Assignment','Exam','Study Session') NOT NULL,
   reference_id   INT,
+  description    VARCHAR(255),
   remind_date    DATE NOT NULL,
   remind_time    TIME NOT NULL DEFAULT '23:59:00',
   notify_before  ENUM('15 minutes','1 hour','1 day') NOT NULL DEFAULT '1 hour',
   email_enabled  BOOLEAN NOT NULL DEFAULT TRUE,
+  email_sent     BOOLEAN NOT NULL DEFAULT FALSE,
   is_active      BOOLEAN NOT NULL DEFAULT TRUE,
   created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_reminders_user FOREIGN KEY (user_id)
