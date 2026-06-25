@@ -12,10 +12,10 @@ const studentNav = [
   { to: "/app",              label: "Dashboard",        icon: LayoutGrid   },
   { to: "/app/tasks",        label: "Tasks",            icon: CheckSquare  },
   { to: "/app/assignments",  label: "Assignments",      icon: FileText     },
+  { to: "/app/exams",        label: "Exams",            icon: GraduationCap},
   { to: "/app/schedule",     label: "Schedule",         icon: Calendar     },
   { to: "/app/reminders",    label: "Reminders",        icon: Bell         },
   { to: "/app/recommendations", label: "AI recommendations", icon: Brain   },
-  { to: "/app/exams",        label: "Exams",            icon: GraduationCap},
 ];
 
 const adminNav = [
@@ -56,6 +56,7 @@ function Layout({ role }) {
         user={currentUser}
         onLogout={handleLogout}
         label={role === "admin" ? "Administration" : "Workspace"}
+        profileTo={role === "admin" ? "/admin/profile" : "/app/profile"}
       />
 
       <main className="flex-1 min-w-0 overflow-x-hidden">

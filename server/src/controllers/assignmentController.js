@@ -1,92 +1,88 @@
-import { pool } from "../config/db.js";
+import { Assignment, Course } from "../models/index.js";
 
 async function findOrCreateCourse(userId, courseName) {
-  if (!courseName || !courseName.trim()) return null;
-  const name = courseName.trim();
-  const [[existing]] = await pool.query(
-    `SELECT course_id FROM courses WHERE user_id = ? AND name = ? LIMIT 1`,
-    [userId, name]
-  );
-  if (existing) return existing.course_id;
-  const [result] = await pool.query(
-    `INSERT INTO courses (user_id, name) VALUES (?, ?)`,
-    [userId, name]
-  );
-  return result.insertId;
+  if (!courseName?.trim()) return null;
+  const [course] = await Course.findOrCreate({
+    where:    { user_id: userId, name: courseName.trim() },
+    defaults: { user_id: userId, name: courseName.trim() },
+  });
+  return course.course_id;
 }
 
-// GET /api/assignments
+function fmtDate(d) {
+  if (!d) return null;
+  return new Date(d + "T00:00:00").toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
 export async function getAssignments(req, res) {
   try {
-    const [rows] = await pool.query(
-      `SELECT a.assignment_id AS id, a.title AS name, c.name AS course,
-              a.description,
-              DATE_FORMAT(a.due_date, '%d %b %Y') AS due,
-              a.due_date AS rawDue,
-              a.priority, a.status
-       FROM assignments a
-       LEFT JOIN courses c ON a.course_id = c.course_id
-       WHERE a.user_id = ?
-       ORDER BY a.due_date`,
-      [req.user.id]
-    );
-    res.json(rows);
+    const rows = await Assignment.findAll({
+      where:   { user_id: req.user.id },
+      include: [{ model: Course, attributes: ["name"], required: false }],
+      order:   [["due_date", "ASC"]],
+    });
+    res.json(rows.map(a => ({
+      id:          a.assignment_id,
+      name:        a.title,
+      course:      a.Course?.name || null,
+      description: a.description,
+      due:         fmtDate(a.due_date),
+      rawDue:      a.due_date,
+      priority:    a.priority,
+      status:      a.status,
+    })));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 }
 
-// POST /api/assignments
 export async function createAssignment(req, res) {
   try {
     const { title, description, courseName, priority, dueDate } = req.body;
     if (!title || !dueDate)
       return res.status(400).json({ message: "Title and due date are required" });
-    const courseId = await findOrCreateCourse(req.user.id, courseName);
-    const [result] = await pool.query(
-      `INSERT INTO assignments (user_id, course_id, title, description, priority, due_date)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [req.user.id, courseId, title, description || null, priority || "Medium", dueDate]
-    );
-    res.status(201).json({ id: result.insertId, message: "Assignment created" });
+    const course_id = await findOrCreateCourse(req.user.id, courseName);
+    const a = await Assignment.create({
+      user_id: req.user.id, course_id, title,
+      description: description || null,
+      priority:    priority    || "Medium",
+      due_date:    dueDate,
+    });
+    res.status(201).json({ id: a.assignment_id, message: "Assignment created" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 }
 
-// PUT /api/assignments/:id
 export async function updateAssignment(req, res) {
   try {
     const { title, description, courseName, dueDate, priority, status } = req.body;
-    const courseId = await findOrCreateCourse(req.user.id, courseName);
-    const [result] = await pool.query(
-      `UPDATE assignments
-       SET title       = COALESCE(?, title),
-           description = COALESCE(?, description),
-           course_id   = ?,
-           due_date    = COALESCE(?, due_date),
-           priority    = COALESCE(?, priority),
-           status      = COALESCE(?, status)
-       WHERE assignment_id = ? AND user_id = ?`,
-      [title ?? null, description ?? null, courseId, dueDate ?? null, priority ?? null, status ?? null, req.params.id, req.user.id]
-    );
-    if (result.affectedRows === 0)
-      return res.status(404).json({ message: "Assignment not found" });
+    const course_id = await findOrCreateCourse(req.user.id, courseName);
+
+    const updates = {};
+    if (title       != null) updates.title       = title;
+    if (description != null) updates.description = description;
+    if (course_id   != null) updates.course_id   = course_id;
+    if (dueDate     != null) updates.due_date     = dueDate;
+    if (priority    != null) updates.priority     = priority;
+    if (status      != null) updates.status       = status;
+
+    const [count] = await Assignment.update(updates, {
+      where: { assignment_id: req.params.id, user_id: req.user.id },
+    });
+    if (count === 0) return res.status(404).json({ message: "Assignment not found" });
     res.json({ message: "Assignment updated" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 }
 
-// DELETE /api/assignments/:id
 export async function deleteAssignment(req, res) {
   try {
-    const [result] = await pool.query(
-      `DELETE FROM assignments WHERE assignment_id = ? AND user_id = ?`,
-      [req.params.id, req.user.id]
-    );
-    if (result.affectedRows === 0)
-      return res.status(404).json({ message: "Assignment not found" });
+    const count = await Assignment.destroy({
+      where: { assignment_id: req.params.id, user_id: req.user.id },
+    });
+    if (count === 0) return res.status(404).json({ message: "Assignment not found" });
     res.json({ message: "Assignment deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -1,38 +1,44 @@
-import { pool } from "../config/db.js";
+import { QueryTypes, Op } from "sequelize";
+import { sequelize } from "../config/db.js";
+import { User, Task, Assignment, Examination } from "../models/index.js";
 
 export async function getAdminStats(req, res) {
   try {
-    const [[userCounts]] = await pool.query(
-      `SELECT COUNT(*) AS totalUsers,
-              SUM(role = 'Student') AS totalStudents,
-              SUM(role = 'Admin')   AS totalAdmins
-       FROM users`
-    );
-    const [[taskCounts]] = await pool.query(
-      `SELECT COUNT(*)                    AS totalTasks,
-              SUM(status = 'Pending')     AS pending,
-              SUM(status = 'In Progress') AS inProgress,
-              SUM(status = 'Completed')   AS completed
-       FROM tasks`
-    );
-    const [[assignCounts]] = await pool.query(
-      `SELECT COUNT(*) AS totalAssignments FROM assignments`
-    );
-    const [[examCounts]] = await pool.query(
-      `SELECT COUNT(*) AS totalExams FROM examinations`
-    );
-    const [recentUsers] = await pool.query(
-      `SELECT user_id AS id, full_name AS fullName, email, role,
-              DATE_FORMAT(created_at, '%d %b %Y') AS joinedAt
-       FROM users ORDER BY created_at DESC LIMIT 5`
-    );
+    const totalUsers    = await User.count();
+    const totalStudents = await User.count({ where: { role: "Student" } });
+    const totalAdmins   = await User.count({ where: { role: "Admin"   } });
+
+    const totalTasks       = await Task.count();
+    const pendingTasks     = await Task.count({ where: { status: "Pending"     } });
+    const inProgressTasks  = await Task.count({ where: { status: "In Progress" } });
+    const completedTasks   = await Task.count({ where: { status: "Completed"   } });
+    const totalAssignments = await Assignment.count();
+    const totalExams       = await Examination.count();
+
+    const recentUsers = await User.findAll({
+      attributes: [
+        "user_id",
+        "full_name",
+        "email",
+        "role",
+        [sequelize.fn("DATE_FORMAT", sequelize.col("created_at"), "%d %b %Y"), "joinedAt"],
+      ],
+      order: [["created_at", "DESC"]],
+      limit: 5,
+    });
 
     res.json({
-      users:       { total: Number(userCounts.totalUsers), students: Number(userCounts.totalStudents), admins: Number(userCounts.totalAdmins) },
-      tasks:       { total: Number(taskCounts.totalTasks), pending: Number(taskCounts.pending), inProgress: Number(taskCounts.inProgress), completed: Number(taskCounts.completed) },
-      assignments: { total: Number(assignCounts.totalAssignments) },
-      exams:       { total: Number(examCounts.totalExams) },
-      recentUsers,
+      users:       { total: totalUsers, students: totalStudents, admins: totalAdmins },
+      tasks:       { total: totalTasks, pending: pendingTasks, inProgress: inProgressTasks, completed: completedTasks },
+      assignments: { total: totalAssignments },
+      exams:       { total: totalExams },
+      recentUsers: recentUsers.map(u => ({
+        id:       u.user_id,
+        fullName: u.full_name,
+        email:    u.email,
+        role:     u.role,
+        joinedAt: u.get("joinedAt"),
+      })),
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -41,14 +47,25 @@ export async function getAdminStats(req, res) {
 
 export async function getUsers(req, res) {
   try {
-    const [rows] = await pool.query(
-      `SELECT user_id AS id, full_name AS fullName, email, role, major, phone,
-              DATE_FORMAT(last_login,  '%d %b %Y %h:%i %p') AS lastLogin,
-              DATE_FORMAT(created_at,  '%d %b %Y')           AS joinedAt,
-              notifications_enabled AS notificationsEnabled
-       FROM users ORDER BY created_at DESC`
-    );
-    res.json(rows);
+    const rows = await User.findAll({
+      attributes: [
+        "user_id", "full_name", "email", "role", "major", "phone", "notifications_enabled",
+        [sequelize.fn("DATE_FORMAT", sequelize.col("last_login"),  "%d %b %Y %h:%i %p"), "lastLogin"],
+        [sequelize.fn("DATE_FORMAT", sequelize.col("created_at"),  "%d %b %Y"),           "joinedAt"],
+      ],
+      order: [["created_at", "DESC"]],
+    });
+    res.json(rows.map(u => ({
+      id:                   u.user_id,
+      fullName:             u.full_name,
+      email:                u.email,
+      role:                 u.role,
+      major:                u.major,
+      phone:                u.phone,
+      notificationsEnabled: u.notifications_enabled,
+      lastLogin:            u.get("lastLogin"),
+      joinedAt:             u.get("joinedAt"),
+    })));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -62,7 +79,7 @@ export async function updateUserRole(req, res) {
       return res.status(400).json({ message: "Invalid role." });
     if (Number(id) === req.user.id)
       return res.status(400).json({ message: "Cannot change your own role." });
-    await pool.query(`UPDATE users SET role = ? WHERE user_id = ?`, [role, id]);
+    await User.update({ role }, { where: { user_id: id } });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -74,7 +91,7 @@ export async function deleteUser(req, res) {
     const { id } = req.params;
     if (Number(id) === req.user.id)
       return res.status(400).json({ message: "Cannot delete your own account." });
-    await pool.query(`DELETE FROM users WHERE user_id = ?`, [id]);
+    await User.destroy({ where: { user_id: id } });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -83,28 +100,47 @@ export async function deleteUser(req, res) {
 
 export async function getSecurityInfo(req, res) {
   try {
-    const [admins] = await pool.query(
-      `SELECT user_id AS id, full_name AS fullName, email,
-              DATE_FORMAT(last_login, '%d %b %Y %h:%i %p') AS lastLogin,
-              DATE_FORMAT(created_at, '%d %b %Y')           AS joinedAt
-       FROM users WHERE role = 'Admin' ORDER BY created_at`
-    );
-    const [recentLogins] = await pool.query(
-      `SELECT user_id AS id, full_name AS fullName, email, role,
-              DATE_FORMAT(last_login, '%d %b %Y %h:%i %p') AS lastLogin
-       FROM users WHERE last_login IS NOT NULL
-       ORDER BY last_login DESC LIMIT 10`
-    );
-    const [[counts]] = await pool.query(
-      `SELECT
-        (SELECT COUNT(*) FROM users)        AS totalUsers,
-        (SELECT COUNT(*) FROM tasks)        AS totalTasks,
-        (SELECT COUNT(*) FROM assignments)  AS totalAssignments,
-        (SELECT COUNT(*) FROM examinations) AS totalExams,
-        (SELECT COUNT(*) FROM reminders)    AS totalReminders,
-        (SELECT COUNT(*) FROM study_sessions) AS totalSessions`
-    );
-    res.json({ admins, recentLogins, counts });
+    const admins = await User.findAll({
+      where: { role: "Admin" },
+      attributes: [
+        "user_id", "full_name", "email",
+        [sequelize.fn("DATE_FORMAT", sequelize.col("last_login"),  "%d %b %Y %h:%i %p"), "lastLogin"],
+        [sequelize.fn("DATE_FORMAT", sequelize.col("created_at"),  "%d %b %Y"),           "joinedAt"],
+      ],
+      order: [["created_at", "ASC"]],
+    });
+
+    const recentLogins = await User.findAll({
+      where: { last_login: { [Op.ne]: null } },
+      attributes: [
+        "user_id", "full_name", "email", "role",
+        [sequelize.fn("DATE_FORMAT", sequelize.col("last_login"), "%d %b %Y %h:%i %p"), "lastLogin"],
+      ],
+      order: [["last_login", "DESC"]],
+      limit: 10,
+    });
+
+    const [counts] = await sequelize.query(`
+      SELECT
+        (SELECT COUNT(*) FROM users)          AS totalUsers,
+        (SELECT COUNT(*) FROM tasks)          AS totalTasks,
+        (SELECT COUNT(*) FROM assignments)    AS totalAssignments,
+        (SELECT COUNT(*) FROM examinations)   AS totalExams,
+        (SELECT COUNT(*) FROM reminders)      AS totalReminders,
+        (SELECT COUNT(*) FROM study_sessions) AS totalSessions
+    `, { type: QueryTypes.SELECT });
+
+    res.json({
+      admins: admins.map(u => ({
+        id: u.user_id, fullName: u.full_name, email: u.email,
+        lastLogin: u.get("lastLogin"), joinedAt: u.get("joinedAt"),
+      })),
+      recentLogins: recentLogins.map(u => ({
+        id: u.user_id, fullName: u.full_name, email: u.email,
+        role: u.role, lastLogin: u.get("lastLogin"),
+      })),
+      counts,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

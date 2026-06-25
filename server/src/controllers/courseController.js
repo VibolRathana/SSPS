@@ -1,12 +1,13 @@
-import { pool } from "../config/db.js";
+import { Course } from "../models/index.js";
 
 export async function getCourses(req, res) {
   try {
-    const [rows] = await pool.query(
-      `SELECT course_id AS id, name, code, color FROM courses WHERE user_id = ? ORDER BY name`,
-      [req.user.id]
-    );
-    res.json(rows);
+    const courses = await Course.findAll({
+      where:      { user_id: req.user.id },
+      attributes: ["course_id", "name", "code", "color"],
+      order:      [["name", "ASC"]],
+    });
+    res.json(courses.map(c => ({ id: c.course_id, name: c.name, code: c.code, color: c.color })));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -16,11 +17,13 @@ export async function createCourse(req, res) {
   try {
     const { name, code, color } = req.body;
     if (!name) return res.status(400).json({ message: "Course name is required" });
-    const [result] = await pool.query(
-      `INSERT INTO courses (user_id, name, code, color) VALUES (?, ?, ?, ?)`,
-      [req.user.id, name, code || null, color || "#6366F1"]
-    );
-    res.status(201).json({ id: result.insertId, message: "Course created" });
+    const course = await Course.create({
+      user_id: req.user.id,
+      name,
+      code:  code  || null,
+      color: color || "#6366F1",
+    });
+    res.status(201).json({ id: course.course_id, message: "Course created" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -28,12 +31,10 @@ export async function createCourse(req, res) {
 
 export async function deleteCourse(req, res) {
   try {
-    const [result] = await pool.query(
-      `DELETE FROM courses WHERE course_id = ? AND user_id = ?`,
-      [req.params.id, req.user.id]
-    );
-    if (result.affectedRows === 0)
-      return res.status(404).json({ message: "Course not found" });
+    const count = await Course.destroy({
+      where: { course_id: req.params.id, user_id: req.user.id },
+    });
+    if (count === 0) return res.status(404).json({ message: "Course not found" });
     res.json({ message: "Course deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -79,6 +79,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="security" element={<Security />} />
+            <Route path="profile" element={<UserProfile />} />
           </Route>
 
           {/* ---------- Default ---------- */}

@@ -2,7 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import { pool } from "./src/config/db.js";
+import { QueryTypes } from "sequelize";
+import { sequelize } from "./src/config/db.js";
+import { Reminder } from "./src/models/index.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import taskRoutes from "./src/routes/taskRoutes.js";
@@ -26,7 +28,7 @@ app.use(express.json());
 // Health check
 app.get("/api/health", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT 1 + 1 AS result");
+    const [rows] = await sequelize.query("SELECT 1 + 1 AS result");
     res.json({ status: "ok", db: "connected", test: rows[0].result });
   } catch (err) {
     res.status(500).json({ status: "error", message: err.message });
@@ -52,7 +54,7 @@ app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`)
 // Reminder email cron — checks every 60 seconds
 setInterval(async () => {
   try {
-    const [due] = await pool.query(
+    const due = await sequelize.query(
       `SELECT r.reminder_id, r.reminder_type, r.description,
               r.remind_date, r.remind_time, r.notify_before,
               u.email, u.full_name AS fullName
@@ -67,7 +69,8 @@ setInterval(async () => {
            WHEN r.notify_before = '15 minutes' THEN TIMESTAMPADD(MINUTE, -15, TIMESTAMP(r.remind_date, r.remind_time)) <= NOW()
            WHEN r.notify_before = '1 hour'     THEN TIMESTAMPADD(HOUR,   -1, TIMESTAMP(r.remind_date, r.remind_time)) <= NOW()
            WHEN r.notify_before = '1 day'      THEN TIMESTAMPADD(DAY,    -1, TIMESTAMP(r.remind_date, r.remind_time)) <= NOW()
-         END`
+         END`,
+      { type: QueryTypes.SELECT }
     );
     for (const r of due) {
       try {
@@ -80,7 +83,7 @@ setInterval(async () => {
           notifyBefore: r.notify_before,
           description:  r.description,
         });
-        await pool.query(`UPDATE reminders SET email_sent = TRUE WHERE reminder_id = ?`, [r.reminder_id]);
+        await Reminder.update({ email_sent: true }, { where: { reminder_id: r.reminder_id } });
         console.log(`[reminder] Email sent → ${r.email} (${r.reminder_type})`);
       } catch (e) {
         console.error(`[reminder] Failed for id=${r.reminder_id}:`, e.message);

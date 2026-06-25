@@ -1,10 +1,23 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { User } from "../models/User.js";
-import { pool } from "../config/db.js";
+import { Op } from "sequelize";
+import { User, Task, StudySession, Examination } from "../models/index.js";
 
 function createToken(user) {
   return jwt.sign({ id: user.user_id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+}
+
+function userJSON(u) {
+  return {
+    id:                   u.user_id,
+    fullName:             u.full_name,
+    email:                u.email,
+    role:                 u.role,
+    major:                u.major,
+    phone:                u.phone,
+    bio:                  u.bio,
+    notificationsEnabled: u.notifications_enabled ?? true,
+  };
 }
 
 export async function register(req, res) {
@@ -16,11 +29,14 @@ export async function register(req, res) {
     const existing = await User.findOne({ where: { email } });
     if (existing) return res.status(409).json({ message: "Email is already registered" });
 
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ full_name: fullName, email, password_hash: passwordHash });
+    const password_hash = await bcrypt.hash(password, 10);
+    const user = await User.create({ full_name: fullName, email, password_hash });
 
-    const token = createToken(user);
-    res.status(201).json({ message: "Account created", token, user: { id: user.user_id, fullName, email, role: user.role } });
+    res.status(201).json({
+      message: "Account created",
+      token: createToken(user),
+      user: userJSON(user),
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -38,11 +54,9 @@ export async function login(req, res) {
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) return res.status(401).json({ message: "Invalid email or password" });
 
-    user.last_login = new Date();
-    await user.save();
+    await user.update({ last_login: new Date() });
 
-    const token = createToken(user);
-    res.json({ message: "Logged in", token, user: { id: user.user_id, fullName: user.full_name, email: user.email, role: user.role, notificationsEnabled: user.notifications_enabled ?? true } });
+    res.json({ message: "Logged in", token: createToken(user), user: userJSON(user) });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -60,8 +74,7 @@ export async function changePassword(req, res) {
     const match = await bcrypt.compare(currentPassword, user.password_hash);
     if (!match) return res.status(401).json({ message: "Current password is incorrect" });
 
-    user.password_hash = await bcrypt.hash(newPassword, 10);
-    await user.save();
+    await user.update({ password_hash: await bcrypt.hash(newPassword, 10) });
     res.json({ message: "Password updated successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -71,8 +84,7 @@ export async function changePassword(req, res) {
 export async function toggleNotifications(req, res) {
   try {
     const user = await User.findByPk(req.user.id);
-    user.notifications_enabled = !user.notifications_enabled;
-    await user.save();
+    await user.update({ notifications_enabled: !user.notifications_enabled });
     res.json({ notificationsEnabled: user.notifications_enabled });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -82,18 +94,31 @@ export async function toggleNotifications(req, res) {
 export async function updateProfile(req, res) {
   try {
     const { fullName, email, major, phone, bio } = req.body;
+
+    const conflict = await User.findOne({
+      where: { email, user_id: { [Op.ne]: req.user.id } },
+    });
+    if (conflict) return res.status(409).json({ message: "That email is already in use" });
+
     await User.update(
-      { full_name: fullName, email, major, phone, bio },
+      { full_name: fullName, email, major: major || null, phone: phone || null, bio: bio || null },
       { where: { user_id: req.user.id } }
     );
     const u = await User.findByPk(req.user.id);
-    res.json({
-      message: "Profile updated",
-      user: { id: u.user_id, fullName: u.full_name, email: u.email, role: u.role, major: u.major, phone: u.phone, bio: u.bio, notificationsEnabled: u.notifications_enabled ?? true },
-    });
+    res.json({ message: "Profile updated", user: userJSON(u) });
   } catch (err) {
-    if (err.name === "SequelizeUniqueConstraintError")
-      return res.status(409).json({ message: "That email is already in use" });
+    res.status(500).json({ message: err.message });
+  }
+}
+
+export async function getStats(req, res) {
+  try {
+    const uid = req.user.id;
+    const tasksCompleted = await Task.count({ where: { user_id: uid, status: "Completed" } });
+    const studyHours     = await StudySession.sum("duration", { where: { user_id: uid } }) || 0;
+    const achievements   = await Examination.count({ where: { user_id: uid } });
+    res.json({ tasksCompleted, studyHours: Number(studyHours), achievements });
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 }

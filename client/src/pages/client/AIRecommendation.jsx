@@ -3,6 +3,7 @@ import { Sparkles, RefreshCw, Clock, Send, Bot, User, Calendar, CheckSquare, Plu
 import api from "../../api/axios";
 import Topbar from "../../components/layout/Topbar";
 import Button from "../../components/ui/Button";
+import { useAuth } from "../../context/AuthContext";
 
 // ── MarkdownText ─────────────────────────────────────────────────
 function MarkdownText({ text }) {
@@ -60,6 +61,11 @@ function ssSet(key, value) {
 
 // ─────────────────────────────────────────────────────────────────
 export default function AIRecommendation() {
+  const { user } = useAuth();
+  const initials = user?.fullName
+    ? user.fullName.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()
+    : "U";
+
   const [tab, setTab] = useState(() => ssGet("ai_tab", "plan"));
 
   // ── Plan tab ──
@@ -197,7 +203,7 @@ export default function AIRecommendation() {
   // ── UI ────────────────────────────────────────────────────────
   return (
     <>
-      <Topbar title="AI Recommendations" subtitle="Powered by Groq AI" user={{ initials: "AM" }} />
+      <Topbar title="AI Recommendations" subtitle="Powered by Groq AI" user={{ initials }} />
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-3xl space-y-5">
 

@@ -1,18 +1,14 @@
-import { pool } from "../config/db.js";
+import { Op } from "sequelize";
+import { sequelize } from "../config/db.js";
+import { StudySession, Course } from "../models/index.js";
 
 async function findOrCreateCourse(userId, courseName) {
-  if (!courseName || !courseName.trim()) return null;
-  const name = courseName.trim();
-  const [[existing]] = await pool.query(
-    `SELECT course_id FROM courses WHERE user_id = ? AND name = ? LIMIT 1`,
-    [userId, name]
-  );
-  if (existing) return existing.course_id;
-  const [result] = await pool.query(
-    `INSERT INTO courses (user_id, name) VALUES (?, ?)`,
-    [userId, name]
-  );
-  return result.insertId;
+  if (!courseName?.trim()) return null;
+  const [course] = await Course.findOrCreate({
+    where:    { user_id: userId, name: courseName.trim() },
+    defaults: { user_id: userId, name: courseName.trim() },
+  });
+  return course.course_id;
 }
 
 export async function getSessions(req, res) {
@@ -20,25 +16,30 @@ export async function getSessions(req, res) {
     const uid = req.user.id;
     const { year, month } = req.query;
 
-    let where = `s.user_id = ?`;
-    const params = [uid];
+    const where = { user_id: uid };
     if (year && month) {
-      where += ` AND YEAR(s.session_date) = ? AND MONTH(s.session_date) = ?`;
-      params.push(year, month);
+      where[Op.and] = [
+        sequelize.where(sequelize.fn("YEAR",  sequelize.col("session_date")), year),
+        sequelize.where(sequelize.fn("MONTH", sequelize.col("session_date")), month),
+      ];
     }
 
-    const [rows] = await pool.query(
-      `SELECT s.session_id AS id, s.title, c.name AS course,
-              DATE_FORMAT(s.session_date, '%Y-%m-%d') AS date,
-              TIME_FORMAT(s.start_time, '%H:%i') AS startTime,
-              s.duration, s.color, s.course_id AS courseId
-       FROM study_sessions s
-       LEFT JOIN courses c ON s.course_id = c.course_id
-       WHERE ${where}
-       ORDER BY s.session_date, s.start_time`,
-      params
-    );
-    res.json(rows);
+    const rows = await StudySession.findAll({
+      where,
+      include: [{ model: Course, attributes: ["name"], required: false }],
+      order:   [["session_date", "ASC"], ["start_time", "ASC"]],
+    });
+
+    res.json(rows.map(s => ({
+      id:        s.session_id,
+      title:     s.title,
+      course:    s.Course?.name || null,
+      date:      s.session_date,
+      startTime: s.start_time?.slice(0, 5),
+      duration:  Number(s.duration),
+      color:     s.color,
+      courseId:  s.course_id,
+    })));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -48,16 +49,19 @@ export async function createSession(req, res) {
   try {
     const uid = req.user.id;
     const { title, courseName, date, startTime, duration, color } = req.body;
-    if (!title || !date || !startTime) {
+    if (!title || !date || !startTime)
       return res.status(400).json({ message: "Title, date, and start time are required." });
-    }
-    const courseId = await findOrCreateCourse(uid, courseName);
-    const [result] = await pool.query(
-      `INSERT INTO study_sessions (user_id, title, course_id, session_date, start_time, duration, color)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [uid, title.trim(), courseId, date, startTime, duration || 1.0, color || "indigo"]
-    );
-    res.status(201).json({ id: result.insertId });
+
+    const course_id = await findOrCreateCourse(uid, courseName);
+    const s = await StudySession.create({
+      user_id: uid, course_id,
+      title:        title.trim(),
+      session_date: date,
+      start_time:   startTime,
+      duration:     duration || 1.0,
+      color:        color    || "indigo",
+    });
+    res.status(201).json({ id: s.session_id });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -66,20 +70,20 @@ export async function createSession(req, res) {
 export async function updateSession(req, res) {
   try {
     const uid = req.user.id;
-    const { id } = req.params;
     const { title, courseName, date, startTime, duration, color } = req.body;
-    const courseId = await findOrCreateCourse(uid, courseName);
-    await pool.query(
-      `UPDATE study_sessions
-       SET title = COALESCE(?, title),
-           course_id = ?,
-           session_date = COALESCE(?, session_date),
-           start_time = COALESCE(?, start_time),
-           duration = COALESCE(?, duration),
-           color = COALESCE(?, color)
-       WHERE session_id = ? AND user_id = ?`,
-      [title, courseId, date, startTime, duration, color, id, uid]
-    );
+    const course_id = await findOrCreateCourse(uid, courseName);
+
+    const updates = {};
+    if (title    != null) updates.title        = title;
+    if (course_id!= null) updates.course_id    = course_id;
+    if (date     != null) updates.session_date = date;
+    if (startTime!= null) updates.start_time   = startTime;
+    if (duration != null) updates.duration     = duration;
+    if (color    != null) updates.color        = color;
+
+    await StudySession.update(updates, {
+      where: { session_id: req.params.id, user_id: uid },
+    });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -88,12 +92,9 @@ export async function updateSession(req, res) {
 
 export async function deleteSession(req, res) {
   try {
-    const uid = req.user.id;
-    const { id } = req.params;
-    await pool.query(
-      `DELETE FROM study_sessions WHERE session_id = ? AND user_id = ?`,
-      [id, uid]
-    );
+    await StudySession.destroy({
+      where: { session_id: req.params.id, user_id: req.user.id },
+    });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: err.message });
