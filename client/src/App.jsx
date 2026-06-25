@@ -8,17 +8,18 @@ import Signup from "./pages/auth/Signup";
 
 // Student pages — import the real ones as you build them
 import Tasks from "./pages/client/Tasks";
-// import Dashboard from "./pages/client/Dashboard";
-// import Assignments from "./pages/client/Assignments";
-// import Schedule from "./pages/client/Schedule";
-// import Reminders from "./pages/client/Reminders";
-// import AIRecommendations from "./pages/client/AIRecommendations";
-// import Exams from "./pages/client/Exams";
+import Assignments from "./pages/client/Assignments";
+import UserProfile from "./pages/client/Profile";
+import Dashboard from "./pages/client/Dashboard";
+import Schedule from "./pages/client/Schedule";
+import Reminders from "./pages/client/Reminder";
+import AIRecommendation from "./pages/client/AIRecommendation";
+import Exams from "./pages/client/Exam";
 
-// Admin pages — import the real ones as you build them
-// import AdminDashboard from "./pages/admin/AdminDashboard";
-// import Users from "./pages/admin/Users";
-// import Security from "./pages/admin/Security";
+// Admin pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/User";
+import Security from "./pages/admin/Security";
 
 // Temporary stand-in for any page you haven't built yet
 function Placeholder({ title }) {
@@ -56,13 +57,14 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Placeholder title="Dashboard" />} />
+            <Route index element={<Dashboard />} />
             <Route path="tasks" element={<Tasks />} />
-            <Route path="assignments" element={<Placeholder title="Assignments" />} />
-            <Route path="schedule" element={<Placeholder title="Schedule" />} />
-            <Route path="reminders" element={<Placeholder title="Reminders" />} />
-            <Route path="recommendations" element={<Placeholder title="AI recommendations" />} />
-            <Route path="exams" element={<Placeholder title="Exams" />} />
+            <Route path="assignments" element={<Assignments />} />
+            <Route path="schedule" element={<Schedule />} />
+            <Route path="reminders" element={<Reminders />} />
+            <Route path="recommendations" element={<AIRecommendation />} />
+            <Route path="exams" element={<Exams />} />
+            <Route path="profile" element={<UserProfile />} />
           </Route>
 
           {/* ---------- Admin app (admins only) ---------- */}
@@ -74,9 +76,10 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Placeholder title="Admin dashboard" />} />
-            <Route path="users" element={<Placeholder title="Users" />} />
-            <Route path="security" element={<Placeholder title="Security" />} />
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="security" element={<Security />} />
+            <Route path="profile" element={<UserProfile />} />
           </Route>
 
           {/* ---------- Default ---------- */}
