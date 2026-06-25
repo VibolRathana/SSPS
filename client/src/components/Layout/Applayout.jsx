@@ -38,7 +38,7 @@ function Layout({ role }) {
 
   function handleLogout() {
     logout();
-    navigate("/login");
+    navigate("/");
   }
 
   return (

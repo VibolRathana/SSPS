@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import AppLayout from "./components/layout/AppLayout";
 
 // Auth pages (built)
+import Landing from "./pages/Landing";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 
@@ -21,16 +22,6 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/User";
 import Security from "./pages/admin/Security";
 
-// Temporary stand-in for any page you haven't built yet
-function Placeholder({ title }) {
-  return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
-      <p className="mt-2 text-sm text-slate-500">This page is coming soon.</p>
-    </div>
-  );
-}
-
 // Auth guard — also blocks students from admin pages
 function ProtectedRoute({ children, role }) {
   const { user } = useAuth();
@@ -45,6 +36,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           {/* ---------- Public ---------- */}
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
@@ -83,7 +75,7 @@ export default function App() {
           </Route>
 
           {/* ---------- Default ---------- */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
