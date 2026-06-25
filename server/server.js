@@ -12,6 +12,7 @@ import courseRoutes from "./src/routes/courseRoutes.js";
 import reminderRoutes from "./src/routes/reminderRoutes.js";
 import recommendationRoutes from "./src/routes/recommendationRoutes.js";
 import scheduleRoutes from "./src/routes/scheduleRoutes.js";
+import dashboardRoutes from "./src/routes/dashboardRoutes.js";
 import { sendReminderEmail } from "./src/services/emailService.js";
 
 dotenv.config();
@@ -42,6 +43,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/reminders", reminderRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/schedule", scheduleRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
