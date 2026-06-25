@@ -99,7 +99,7 @@ export default function Landing() {
                     {[...Array(3)].map((_, i) => (
                       <div
                         key={i}
-                        className="w-5 h-[3px] rounded-full"
+                        className="w-5 h-0.75 rounded-full"
                         style={{ backgroundColor: t.color, opacity: i === 1 ? 0.6 : 1 }}
                       />
                     ))}
