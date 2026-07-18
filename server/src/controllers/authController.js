@@ -38,11 +38,19 @@ export async function login(req, res) {
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) return res.status(401).json({ message: "Invalid email or password" });
 
+<<<<<<< Updated upstream
     user.last_login = new Date();
     await user.save();
 
     const token = createToken(user);
     res.json({ message: "Logged in", token, user: { id: user.user_id, fullName: user.full_name, email: user.email, role: user.role, notificationsEnabled: user.notifications_enabled ?? true } });
+=======
+    await user.update({ last_login: new Date() });
+    console.log("========== LOGIN ==========");
+    console.log(user.email);
+    console.log(user.role);
+    res.json({ message: "Logged in", token: createToken(user), user: userJSON(user) });
+>>>>>>> Stashed changes
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
