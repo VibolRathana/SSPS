@@ -26,6 +26,7 @@ export default function Tasks() {
       .finally(() => setLoading(false));
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadTasks(); }, []);
 
   async function handleCreate(e) {
@@ -74,6 +75,7 @@ export default function Tasks() {
     try {
       await api.delete(`/tasks/${id}`);
       loadTasks();
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       alert("Could not delete task");
     }
@@ -177,7 +179,7 @@ export default function Tasks() {
           <>
             <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
             <Button onClick={handleCreate} disabled={saving}>{saving ? "Saving…" : "Create task"}</Button>
-          </>
+          </> 
         }
       >
         <form onSubmit={handleCreate}>{formFields(false)}</form>

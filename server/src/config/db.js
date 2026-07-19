@@ -16,4 +16,7 @@ export const sequelize = new Sequelize(
 
 sequelize.authenticate()
   .then(() => console.log("[db] MySQL connected via Sequelize"))
-  .catch(err  => { console.error("[db] Connection failed:", err.message); process.exit(1); });
+  .catch(err => {
+  console.error("[db] Connection failed:", err);
+  process.exit(1);
+});

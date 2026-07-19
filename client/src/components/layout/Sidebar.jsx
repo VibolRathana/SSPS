@@ -9,7 +9,7 @@ export default function Sidebar({ items = [], user, onLogout, label = "Workspace
   return (
     <aside className={`
       fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col
-      bg-linear-to-b from-indigo-500 to-indigo-700 px-4 py-6 text-white
+      bg-linear-to-b  from-red-700 to-indigo-500 px-4 py-6 text-white
       transition-transform duration-300 ease-in-out
       md:sticky md:top-0 md:h-screen md:translate-x-0 md:w-60
       ${open ? "translate-x-0" : "-translate-x-full"}

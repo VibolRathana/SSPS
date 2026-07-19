@@ -197,7 +197,7 @@ export default function Schedule() {
     try {
       await api.delete(`/schedule/${id}`);
       loadSessions();
-    } catch {}
+    } catch { /* empty */ }
   }
 
   function fmtDuration(d) {

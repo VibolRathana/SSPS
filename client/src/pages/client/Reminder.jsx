@@ -89,6 +89,7 @@ export default function Reminders() {
       .finally(() => setLoading(false));
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   async function handleCreate(e) {
@@ -155,6 +156,7 @@ export default function Reminders() {
     try {
       await api.delete(`/reminders/${id}`);
       load();
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       alert("Could not delete reminder");
     }
