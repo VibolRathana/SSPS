@@ -1,4 +1,3 @@
-import React from "react";
 
 const base =
   "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition " +
@@ -6,10 +5,10 @@ const base =
   "disabled:pointer-events-none disabled:opacity-50";
 
 const variants = {
-  primary: "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700",
+  primary:   "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700",
   secondary: "bg-indigo-50 text-indigo-600 hover:bg-indigo-100",
-  ghost: "border border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:text-indigo-600",
-  danger: "bg-rose-500 text-white hover:bg-rose-600",
+  ghost:     "border border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:text-indigo-600",
+  danger:    "bg-rose-500 text-white hover:bg-rose-600",
 };
 
 const sizes = {
@@ -20,9 +19,9 @@ const sizes = {
 
 export default function Button({
   children,
-  variant = "primary",
-  size = "md",
-  type = "button",
+  variant   = "primary",
+  size      = "md",
+  type      = "button",
   className = "",
   ...props
 }) {

@@ -6,8 +6,8 @@ import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 
 const NOTIFY_OPTIONS = ["15 minutes", "1 hour", "1 day"];
-const TYPES = ["Task", "Assignment", "Exam", "Study Session"];
-const EMPTY_FORM = { type: "Assignment", remindDate: "", remindTime: "", notifyBefore: "1 hour", description: "" };
+const TYPES          = ["Task", "Assignment", "Exam", "Study Session"];
+const EMPTY_FORM     = { type: "Assignment", remindDate: "", remindTime: "", notifyBefore: "1 hour", description: "" };
 
 function Toggle({ active, onChange }) {
   return (
@@ -156,8 +156,12 @@ export default function Reminders() {
     try {
       await api.delete(`/reminders/${id}`);
       load();
+<<<<<<< HEAD
     // eslint-disable-next-line no-unused-vars
     } catch (err) {
+=======
+    } catch {
+>>>>>>> 0c0bf1d (update front end and backend and security)
       alert("Could not delete reminder");
     }
   }

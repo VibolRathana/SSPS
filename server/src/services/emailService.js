@@ -10,7 +10,25 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 export async function sendReminderEmail({ to, name, type, date, time, notifyBefore, description }) {
+  const safe = {
+    name: escapeHtml(name),
+    type: escapeHtml(type),
+    date: escapeHtml(date),
+    time: escapeHtml(time),
+    notifyBefore: escapeHtml(notifyBefore),
+    description: escapeHtml(description),
+  };
+
   await transporter.sendMail({
     from: `"Smart Study Planner" <${process.env.EMAIL_USER}>`,
     to,
@@ -21,30 +39,16 @@ export async function sendReminderEmail({ to, name, type, date, time, notifyBefo
           <h1 style="color:#fff;margin:0;font-size:20px;">⏰ Study Planner Reminder</h1>
         </div>
         <div style="padding:24px 28px;">
-          <p style="color:#374151;margin-top:0;">Hi <strong>${name}</strong>,</p>
-          <p style="color:#374151;">You have an upcoming <strong>${type}</strong> coming up!</p>
+          <p style="color:#374151;margin-top:0;">Hi <strong>${safe.name}</strong>,</p>
+          <p style="color:#374151;">You have an upcoming <strong>${safe.type}</strong> coming up!</p>
           <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-            <tr style="border-bottom:1px solid #f1f5f9;">
-              <td style="padding:10px 0;color:#6B7280;font-size:14px;">Date &amp; Time</td>
-              <td style="padding:10px 0;font-weight:600;font-size:14px;">${date} at ${time}</td>
-            </tr>
-            <tr style="border-bottom:1px solid #f1f5f9;">
-              <td style="padding:10px 0;color:#6B7280;font-size:14px;">Type</td>
-              <td style="padding:10px 0;font-weight:600;font-size:14px;">${type}</td>
-            </tr>
-            ${description ? `
-            <tr style="border-bottom:1px solid #f1f5f9;">
-              <td style="padding:10px 0;color:#6B7280;font-size:14px;">Notes</td>
-              <td style="padding:10px 0;font-size:14px;">${description}</td>
-            </tr>` : ""}
-            <tr>
-              <td style="padding:10px 0;color:#6B7280;font-size:14px;">Notify Before</td>
-              <td style="padding:10px 0;font-size:14px;">${notifyBefore}</td>
-            </tr>
+            <tr><td style="padding:10px 0;color:#6B7280;">Date &amp; Time</td><td style="padding:10px 0;font-weight:600;">${safe.date} at ${safe.time}</td></tr>
+            <tr><td style="padding:10px 0;color:#6B7280;">Type</td><td style="padding:10px 0;font-weight:600;">${safe.type}</td></tr>
+            ${safe.description ? `<tr><td style="padding:10px 0;color:#6B7280;">Notes</td><td style="padding:10px 0;">${safe.description}</td></tr>` : ""}
+            <tr><td style="padding:10px 0;color:#6B7280;">Notify Before</td><td style="padding:10px 0;">${safe.notifyBefore}</td></tr>
           </table>
-          <p style="color:#9CA3AF;font-size:12px;margin-bottom:0;">Smart Study Planner — Stay on track!</p>
+          <p style="color:#9CA3AF;font-size:12px;">Smart Study Planner — Stay on track!</p>
         </div>
-      </div>
-    `,
+      </div>`,
   });
 }

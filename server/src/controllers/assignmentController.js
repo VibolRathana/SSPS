@@ -32,7 +32,8 @@ export async function getAssignments(req, res) {
       status:      a.status,
     })));
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -50,7 +51,8 @@ export async function createAssignment(req, res) {
     });
     res.status(201).json({ id: a.assignment_id, message: "Assignment created" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -62,7 +64,7 @@ export async function updateAssignment(req, res) {
     const updates = {};
     if (title       != null) updates.title       = title;
     if (description != null) updates.description = description;
-    if (course_id   != null) updates.course_id   = course_id;
+    if (courseName  !== undefined) updates.course_id = course_id;
     if (dueDate     != null) updates.due_date     = dueDate;
     if (priority    != null) updates.priority     = priority;
     if (status      != null) updates.status       = status;
@@ -73,7 +75,8 @@ export async function updateAssignment(req, res) {
     if (count === 0) return res.status(404).json({ message: "Assignment not found" });
     res.json({ message: "Assignment updated" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -85,6 +88,7 @@ export async function deleteAssignment(req, res) {
     if (count === 0) return res.status(404).json({ message: "Assignment not found" });
     res.json({ message: "Assignment deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

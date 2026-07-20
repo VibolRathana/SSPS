@@ -1,4 +1,3 @@
-import React from "react";
 import { NavLink } from "react-router-dom";
 import { LogOut, X } from "lucide-react";
 import { useSidebar } from "../../context/SidebarContext";
@@ -14,11 +13,9 @@ export default function Sidebar({ items = [], user, onLogout, label = "Workspace
       md:sticky md:top-0 md:h-screen md:translate-x-0 md:w-60
       ${open ? "translate-x-0" : "-translate-x-full"}
     `}>
-      {/* Logo row */}
       <div className="mb-4 flex items-center gap-3 border-b border-white/15 px-2 pb-5">
-        <div className="grid h-9 w-9 place-items-center rounded-xl bg-white/15 text-lg font-bold">P</div>
-        <span className="flex-1 text-lg font-bold tracking-tight">Planner</span>
-        {/* Close button — mobile only */}
+        <div className="grid h-9 w-9 place-items-center rounded-xl bg-white/15 text-lg font-bold">S</div>
+        <span className="flex-1 text-lg font-bold tracking-tight">ScholarSync</span>
         <button
           onClick={close}
           className="grid h-8 w-8 place-items-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white md:hidden"

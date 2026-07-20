@@ -65,7 +65,8 @@ export async function getRecommendation(req, res) {
     res.json({ recommendation });
   } catch (err) {
     console.error("[recommendation]", err.message);
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -84,7 +85,8 @@ export async function getLastRecommendation(req, res) {
       generatedAt:    row.get("generatedAt"),
     } : { recommendation: null });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -117,7 +119,8 @@ export async function getScores(req, res) {
     res.json({ scores: parsed.scores ?? [] });
   } catch (err) {
     console.error("[scores]", err.message);
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -144,7 +147,8 @@ export async function generateSchedule(req, res) {
     res.json({ sessions: parsed.sessions ?? [] });
   } catch (err) {
     console.error("[generateSchedule]", err.message);
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -155,10 +159,18 @@ export async function addScheduleSessions(req, res) {
     const { sessions } = req.body;
     if (!Array.isArray(sessions) || !sessions.length)
       return res.status(400).json({ message: "No sessions provided." });
+    if (sessions.length > 50)
+      return res.status(400).json({ message: "A maximum of 50 sessions can be added at once." });
 
     let added = 0;
     for (const s of sessions) {
-      if (!s.title || !s.date || !s.startTime) continue;
+      const duration = Number(s.duration ?? 1);
+      if (
+        typeof s.title !== "string" || !s.title.trim() || s.title.length > 150 ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(String(s.date)) ||
+        !/^([01]\d|2[0-3]):[0-5]\d$/.test(String(s.startTime)) ||
+        !Number.isFinite(duration) || duration <= 0 || duration > 12
+      ) continue;
       let course_id = null;
       if (s.courseName?.trim()) {
         const [course] = await Course.findOrCreate({
@@ -169,18 +181,22 @@ export async function addScheduleSessions(req, res) {
       }
       await StudySession.create({
         user_id: uid, course_id,
-        title:        s.title,
+        title:        s.title.trim(),
         session_date: s.date,
         start_time:   s.startTime,
-        duration:     s.duration || 1,
+        duration,
         color:        s.color    || "indigo",
       });
       added++;
     }
+    if (added === 0) {
+      return res.status(400).json({ message: "No valid sessions were provided." });
+    }
     res.json({ added });
   } catch (err) {
     console.error("[addSchedule]", err.message);
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -189,7 +205,18 @@ export async function chatWithAI(req, res) {
   try {
     const uid = req.user.id;
     const { messages } = req.body;
-    if (!messages?.length) return res.status(400).json({ message: "No messages provided." });
+    const safeMessages = Array.isArray(messages)
+      ? messages
+          .filter(m =>
+            ["user", "assistant"].includes(m?.role) &&
+            typeof m.content === "string" &&
+            m.content.trim()
+          )
+          .slice(-20)
+          .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }))
+      : [];
+    if (!safeMessages.length)
+      return res.status(400).json({ message: "No valid messages provided." });
 
     const wl = await fetchWorkload(uid);
     const context = (wl.tasks.length || wl.assignments.length || wl.exams.length)
@@ -200,12 +227,13 @@ export async function chatWithAI(req, res) {
       model: "llama-3.1-8b-instant",
       messages: [
         { role: "system", content: `You are a friendly academic study assistant for a Smart Study Planner app.${context}` },
-        ...messages,
+        ...safeMessages,
       ],
     });
     res.json({ reply: result.choices[0].message.content });
   } catch (err) {
     console.error("[chat]", err.message);
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

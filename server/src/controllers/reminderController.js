@@ -13,6 +13,7 @@ function fmt(r) {
     emailEnabled:  r.email_enabled,
     isActive:      r.is_active,
     emailSent:     r.email_sent,
+    pushSent:      r.push_sent,
   };
 }
 
@@ -24,7 +25,8 @@ export async function getReminders(req, res) {
     });
     res.json(rows.map(fmt));
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -43,7 +45,8 @@ export async function createReminder(req, res) {
     });
     res.status(201).json({ id: r.reminder_id, message: "Reminder created" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -51,7 +54,7 @@ export async function updateReminder(req, res) {
   try {
     const { type, remindDate, remindTime, notifyBefore, description } = req.body;
 
-    const updates = { email_sent: false };
+    const updates = { email_sent: false, push_sent: false };
     if (type        != null) updates.reminder_type = type;
     if (description != null) updates.description   = description;
     if (remindDate  != null) updates.remind_date    = remindDate;
@@ -64,7 +67,8 @@ export async function updateReminder(req, res) {
     if (count === 0) return res.status(404).json({ message: "Reminder not found" });
     res.json({ message: "Reminder updated" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -77,7 +81,8 @@ export async function toggleReminder(req, res) {
     await reminder.update({ is_active: !reminder.is_active });
     res.json({ message: "Toggled" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -89,6 +94,7 @@ export async function deleteReminder(req, res) {
     if (count === 0) return res.status(404).json({ message: "Reminder not found" });
     res.json({ message: "Reminder deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

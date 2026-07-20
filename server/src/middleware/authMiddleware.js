@@ -1,14 +1,31 @@
 import jwt from "jsonwebtoken";
+import { User } from "../models/index.js";
 
-export function protect(req, res, next) {
+export async function protect(req, res, next) {
   const header = req.headers.authorization;
-  if (!header || !header.startsWith("Bearer "))
+  if (!header?.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Not authorized, no token" });
+  }
+
+  let decoded;
   try {
-    req.user = jwt.verify(header.split(" ")[1], process.env.JWT_SECRET);
+    decoded = jwt.verify(header.slice(7), process.env.JWT_SECRET);
+  } catch {
+    return res.status(401).json({ message: "Not authorized, token invalid" });
+  }
+
+  try {
+    const user = await User.findByPk(decoded.id, {
+      attributes: ["user_id", "role"],
+    });
+    if (!user) {
+      return res.status(401).json({ message: "Account no longer exists" });
+    }
+
+    req.user = { id: user.user_id, role: user.role };
     next();
   } catch (err) {
-    res.status(401).json({ message: "Not authorized, token invalid" });
+    next(err);
   }
 }
 

@@ -6,10 +6,18 @@ export async function getDashboard(req, res) {
   try {
     const uid = req.user.id;
 
+    const [dates] = await sequelize.query(
+      `SELECT CURDATE() AS today,
+              DATE_ADD(CURDATE(), INTERVAL 14 DAY) AS in14`,
+      { type: QueryTypes.SELECT }
+    );
+    const today = dates.today;
+    const in14 = dates.in14;
+
     // ── Stats ──────────────────────────────────────────────────
     const pendingTasks       = await Task.count({ where: { user_id: uid, status: { [Op.ne]: "Completed" } } });
     const pendingAssignments = await Assignment.count({ where: { user_id: uid, status: { [Op.notIn]: ["Submitted", "Graded"] } } });
-    const upcomingExams      = await Examination.count({ where: { user_id: uid, exam_date: { [Op.gte]: new Date() } } });
+    const upcomingExams      = await Examination.count({ where: { user_id: uid, exam_date: { [Op.gte]: today } } });
     const weekSessions       = await sequelize.query(
       `SELECT COUNT(*) AS cnt FROM study_sessions
        WHERE user_id = ? AND YEARWEEK(session_date, 1) = YEARWEEK(CURDATE(), 1)`,
@@ -17,9 +25,6 @@ export async function getDashboard(req, res) {
     );
 
     // ── Upcoming deadlines (next 14 days) ──────────────────────
-    const today   = new Date();
-    const in14    = new Date(); in14.setDate(today.getDate() + 14);
-
     const taskDeadlines = await Task.findAll({
       where: { user_id: uid, status: { [Op.ne]: "Completed" }, due_date: { [Op.between]: [today, in14] } },
       include: [{ model: Course, attributes: ["name"], required: false }],
@@ -40,7 +45,7 @@ export async function getDashboard(req, res) {
 
     // ── Today's sessions ───────────────────────────────────────
     const todaySessions = await StudySession.findAll({
-      where: { user_id: uid, session_date: today.toISOString().split("T")[0] },
+      where: { user_id: uid, session_date: today },
       include: [{ model: Course, attributes: ["name"], required: false }],
       order: [["start_time", "ASC"]],
     });
@@ -99,6 +104,7 @@ export async function getDashboard(req, res) {
       ].filter(d => d.value > 0),
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

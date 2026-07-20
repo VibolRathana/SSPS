@@ -41,7 +41,8 @@ export async function getAdminStats(req, res) {
       })),
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -67,7 +68,8 @@ export async function getUsers(req, res) {
       joinedAt:             u.get("joinedAt"),
     })));
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -79,10 +81,12 @@ export async function updateUserRole(req, res) {
       return res.status(400).json({ message: "Invalid role." });
     if (Number(id) === req.user.id)
       return res.status(400).json({ message: "Cannot change your own role." });
-    await User.update({ role }, { where: { user_id: id } });
+    const [count] = await User.update({ role }, { where: { user_id: id } });
+    if (count === 0) return res.status(404).json({ message: "User not found." });
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -91,10 +95,12 @@ export async function deleteUser(req, res) {
     const { id } = req.params;
     if (Number(id) === req.user.id)
       return res.status(400).json({ message: "Cannot delete your own account." });
-    await User.destroy({ where: { user_id: id } });
+    const count = await User.destroy({ where: { user_id: id } });
+    if (count === 0) return res.status(404).json({ message: "User not found." });
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -142,6 +148,7 @@ export async function getSecurityInfo(req, res) {
       counts,
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

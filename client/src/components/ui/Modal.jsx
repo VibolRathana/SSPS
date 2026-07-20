@@ -1,14 +1,7 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
-/**
- * Controlled modal.
- * open:    boolean
- * onClose: () => void
- * title:   header text
- * footer:  node rendered in the footer (e.g. Cancel / Confirm buttons)
- */
 export default function Modal({
   open,
   onClose,

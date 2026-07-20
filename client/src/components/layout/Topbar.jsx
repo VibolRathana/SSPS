@@ -1,4 +1,3 @@
-import React from "react";
 import { Bell, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";

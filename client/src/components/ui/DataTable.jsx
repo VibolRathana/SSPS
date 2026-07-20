@@ -1,14 +1,14 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
 export default function DataTable({
-  columns = [],
-  data = [],
-  searchable = true,
+  columns           = [],
+  data              = [],
+  searchable        = true,
   searchPlaceholder = "Search…",
-  action = null,
-  rowKey = "id",
-  emptyText = "No records yet.",
+  action            = null,
+  rowKey            = "id",
+  emptyText         = "No records yet.",
 }) {
   const [query, setQuery] = useState("");
 

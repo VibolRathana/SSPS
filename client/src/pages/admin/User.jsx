@@ -3,7 +3,6 @@ import { Trash2, ShieldCheck, UserIcon } from "lucide-react";
 import api from "../../api/axios";
 import Topbar from "../../components/layout/Topbar";
 import DataTable from "../../components/ui/DataTable";
-import Badge from "../../components/ui/Badge";
 
 export default function AdminUsers() {
   const [users, setUsers]   = useState([]);

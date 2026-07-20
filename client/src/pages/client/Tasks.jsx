@@ -8,7 +8,7 @@ import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 
 const statusVariant = { Pending: "pending", "In Progress": "progress", Completed: "done" };
-const EMPTY_FORM = { title: "", courseName: "", priority: "Medium", dueDate: "", status: "Pending" };
+const EMPTY_FORM    = { title: "", courseName: "", priority: "Medium", dueDate: "", status: "Pending" };
 
 export default function Tasks() {
   const [tasks, setTasks]       = useState([]);
@@ -75,8 +75,12 @@ export default function Tasks() {
     try {
       await api.delete(`/tasks/${id}`);
       loadTasks();
+<<<<<<< HEAD
     // eslint-disable-next-line no-unused-vars
     } catch (err) {
+=======
+    } catch {
+>>>>>>> 0c0bf1d (update front end and backend and security)
       alert("Could not delete task");
     }
   }

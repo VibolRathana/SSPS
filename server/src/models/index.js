@@ -69,6 +69,7 @@ export const Reminder = sequelize.define("Reminder", {
   notify_before: { type: DataTypes.ENUM("15 minutes", "1 hour", "1 day"), defaultValue: "1 hour" },
   email_enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
   email_sent:    { type: DataTypes.BOOLEAN, defaultValue: false },
+  push_sent:     { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   is_active:     { type: DataTypes.BOOLEAN, defaultValue: true },
 }, { tableName: "reminders", createdAt: "created_at", updatedAt: false });
 
@@ -92,6 +93,15 @@ export const AiRecommendation = sequelize.define("AiRecommendation", {
   recommended_action: { type: DataTypes.TEXT,    allowNull: false },
   generated_at:       { type: DataTypes.DATE,    defaultValue: DataTypes.NOW },
 }, { tableName: "ai_recommendations", timestamps: false });
+
+// ── PushSubscription ──────────────────────────────────────────────
+export const PushSubscription = sequelize.define("PushSubscription", {
+  id:       { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  user_id:  { type: DataTypes.INTEGER, allowNull: false },
+  endpoint: { type: DataTypes.TEXT,    allowNull: false },
+  p256dh:   { type: DataTypes.TEXT,    allowNull: false },
+  auth:     { type: DataTypes.TEXT,    allowNull: false },
+}, { tableName: "push_subscriptions", createdAt: "created_at", updatedAt: false });
 
 // ── Associations ──────────────────────────────────────────────────
 User.hasMany(Course,            { foreignKey: "user_id" });
@@ -122,3 +132,6 @@ Course.hasMany(StudySession,    { foreignKey: "course_id" });
 
 User.hasMany(AiRecommendation,  { foreignKey: "user_id" });
 AiRecommendation.belongsTo(User,{ foreignKey: "user_id" });
+
+User.hasMany(PushSubscription,  { foreignKey: "user_id" });
+PushSubscription.belongsTo(User,{ foreignKey: "user_id" });

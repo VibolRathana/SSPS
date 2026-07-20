@@ -3,27 +3,10 @@ import { Sparkles, RefreshCw, Clock, Send, Bot, User, Calendar, CheckSquare, Plu
 import api from "../../api/axios";
 import Topbar from "../../components/layout/Topbar";
 import Button from "../../components/ui/Button";
+import MarkdownText from "../../components/ui/MarkdownText";
 import { useAuth } from "../../context/AuthContext";
 
 // ── MarkdownText ─────────────────────────────────────────────────
-function MarkdownText({ text }) {
-  return (
-    <div className="space-y-1.5 text-sm text-slate-700 leading-relaxed">
-      {text.split("\n").map((line, i) => {
-        if (!line.trim()) return <div key={i} className="h-1" />;
-        const html = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-        if (line.trim().startsWith("- ") || line.trim().startsWith("* "))
-          return <div key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" /><span dangerouslySetInnerHTML={{ __html: html.replace(/^[-*]\s/, "") }} /></div>;
-        if (/^\d+\./.test(line.trim()))
-          return <div key={i} className="flex gap-2"><span className="shrink-0 font-semibold text-indigo-600">{line.match(/^\d+/)[0]}.</span><span dangerouslySetInnerHTML={{ __html: html.replace(/^\d+\.\s*/, "") }} /></div>;
-        if (line.startsWith("###")) return <p key={i} className="font-bold text-slate-900 mt-2" dangerouslySetInnerHTML={{ __html: html.replace(/^###\s*/, "") }} />;
-        if (line.startsWith("##"))  return <p key={i} className="font-bold text-slate-900 text-base mt-2" dangerouslySetInnerHTML={{ __html: html.replace(/^##\s*/, "") }} />;
-        return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />;
-      })}
-    </div>
-  );
-}
-
 // ── Score label colors ────────────────────────────────────────────
 const SCORE_STYLE = {
   Critical: "bg-red-100 text-red-700 border-red-200",
@@ -56,7 +39,7 @@ function ssGet(key, fallback) {
   try { const v = sessionStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
 }
 function ssSet(key, value) {
-  try { sessionStorage.setItem(key, JSON.stringify(value)); } catch {}
+  try { sessionStorage.setItem(key, JSON.stringify(value)); } catch { /* Storage may be disabled. */ }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -72,7 +55,7 @@ export default function AIRecommendation() {
   const [recommendation, setRecommendation] = useState(() => ssGet("ai_plan", null));
   const [generatedAt,    setGeneratedAt]    = useState(() => ssGet("ai_plan_at", null));
   const [planLoading,    setPlanLoading]    = useState(false);
-  const [planInit,       setPlanInit]       = useState(true);
+  const [planInit,       setPlanInit]       = useState(() => !recommendation);
 
   // ── Scores tab ──
   const [scores,        setScores]        = useState(() => ssGet("ai_scores", null));
@@ -96,7 +79,7 @@ export default function AIRecommendation() {
 
   // load last plan on mount (only if not already cached)
   useEffect(() => {
-    if (recommendation) { setPlanInit(false); return; }
+    if (recommendation) return;
     api.get("/recommendations")
       .then(r => {
         if (r.data.recommendation) {
@@ -106,9 +89,9 @@ export default function AIRecommendation() {
           ssSet("ai_plan_at", r.data.generatedAt);
         }
       })
-      .catch(() => {})
+      .catch(() => { /* The empty state is shown when loading fails. */ })
       .finally(() => setPlanInit(false));
-  }, []);
+  }, [recommendation]);
 
   // auto-scroll chat
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -159,7 +142,7 @@ export default function AIRecommendation() {
         ssSet("ai_added", [...next]);
         return next;
       });
-    } catch (err) { alert("Could not add session."); }
+    } catch { alert("Could not add session."); }
     finally { setAddingIdx(null); }
   }
 
@@ -171,7 +154,7 @@ export default function AIRecommendation() {
       setAddedIds(allIdx);
       ssSet("ai_added", [...allIdx]);
       alert(`${data.added} sessions added to your schedule!`);
-    } catch (err) { alert("Could not add sessions."); }
+    } catch { alert("Could not add sessions."); }
     finally { setAddingAll(false); }
   }
 
@@ -191,7 +174,7 @@ export default function AIRecommendation() {
         ssSet("ai_chat", next);
         return next;
       });
-    } catch (err) {
+    } catch {
       setMessages(prev => {
         const next = [...prev, { role: "assistant", content: "Sorry, I couldn't respond. Please try again." }];
         ssSet("ai_chat", next);

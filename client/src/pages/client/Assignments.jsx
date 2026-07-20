@@ -74,7 +74,7 @@ export default function Assignments() {
     try {
       await api.delete(`/assignments/${id}`);
       load();
-    } catch (err) {
+    } catch {
       alert("Could not delete assignment");
     }
   }

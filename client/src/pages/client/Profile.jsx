@@ -1,23 +1,24 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Pencil, Lock, Bell, Info, ArrowLeft, CheckSquare, Clock, Award, ChevronRight, BookOpen, Brain, Calendar, Mail } from "lucide-react";
+import { Pencil, Lock, BellRing, Info, ArrowLeft, CheckSquare, Award, ChevronRight, BookOpen, Brain, Calendar, Mail } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { usePushNotification } from "../../hooks/usePushNotification";
 import Topbar from "../../components/layout/Topbar";
 import Modal from "../../components/ui/Modal";
 import Button from "../../components/ui/Button";
 import api from "../../api/axios";
 
 export default function Profile() {
-  const { user, updateUser } = useAuth();
-  const navigate = useNavigate();
-  const [notifications, setNotifications] = useState(() => user?.notificationsEnabled ?? true);
-  const [editOpen, setEditOpen] = useState(false);
-  const [pwOpen, setPwOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [stats, setStats] = useState({ tasksCompleted: 0, studyHours: 0, achievements: 0 });
-  const [form, setForm] = useState({ fullName: "", email: "", major: "", phone: "", bio: "" });
-  const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
-  const [pwError, setPwError] = useState("");
+  const { user, updateUser }      = useAuth();
+  const navigate                  = useNavigate();
+  const { supported: pushSupported, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotification();
+  const [editOpen, setEditOpen]   = useState(false);
+  const [pwOpen, setPwOpen]       = useState(false);
+  const [saving, setSaving]       = useState(false);
+  const [stats, setStats]         = useState({ tasksCompleted: 0, achievements: 0 });
+  const [form, setForm]           = useState({ fullName: "", email: "", major: "", phone: "", bio: "" });
+  const [pwForm, setPwForm]       = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [pwError, setPwError]     = useState("");
   const [aboutOpen, setAboutOpen] = useState(false);
 
   const initials = user?.fullName
@@ -75,21 +76,10 @@ export default function Profile() {
     }
   }
 
-  async function handleToggleNotifications() {
-    try {
-      const { data } = await api.patch("/auth/notifications");
-      setNotifications(data.notificationsEnabled);
-      updateUser({ ...user, notificationsEnabled: data.notificationsEnabled });
-    } catch (err) {
-      console.error("Could not update notifications setting", err);
-    }
-  }
-
   const field = "w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-500";
 
   const statCards = [
     { icon: CheckSquare, label: "Tasks completed", value: stats.tasksCompleted, tint: "bg-indigo-50 text-indigo-600" },
-    { icon: Clock, label: "Study hours", value: `${stats.studyHours}h`, tint: "bg-amber-50 text-amber-600" },
     { icon: Award, label: "Achievements", value: stats.achievements, tint: "bg-emerald-50 text-emerald-600" },
   ];
 
@@ -132,11 +122,28 @@ export default function Profile() {
               <ChevronRight size={18} className="text-slate-400" />
             </button>
             <div className="flex w-full items-center gap-4 border-b border-slate-100 px-6 py-4">
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600"><Bell size={17} /></span>
-              <span className="flex-1 text-sm font-semibold text-slate-800">Notifications</span>
-              <button onClick={handleToggleNotifications} className={`relative h-6 w-11 rounded-full transition ${notifications ? "bg-indigo-600" : "bg-slate-300"}`}>
-                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${notifications ? "left-5.5" : "left-0.5"}`} />
-              </button>
+              <span className={`grid h-9 w-9 place-items-center rounded-lg ${pushSupported ? "bg-slate-100 text-slate-600" : "bg-slate-50 text-slate-300"}`}>
+                <BellRing size={17} />
+              </span>
+              <div className="flex-1">
+                <p className={`text-sm font-semibold ${pushSupported ? "text-slate-800" : "text-slate-400"}`}>Browser notifications</p>
+                <p className="text-xs text-slate-400">
+                  {!pushSupported
+                    ? "Not supported in this browser"
+                    : pushSubscribed
+                      ? "You'll get pop-up reminders"
+                      : "Enable pop-up reminders in your browser"}
+                </p>
+              </div>
+              {pushSupported && (
+                <button
+                  onClick={pushSubscribed ? pushUnsubscribe : pushSubscribe}
+                  disabled={pushLoading}
+                  className={`relative h-6 w-11 rounded-full transition disabled:opacity-50 ${pushSubscribed ? "bg-indigo-600" : "bg-slate-300"}`}
+                >
+                  <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${pushSubscribed ? "left-5.5" : "left-0.5"}`} />
+                </button>
+              )}
             </div>
             <button onClick={() => setAboutOpen(true)} className="flex w-full items-center gap-4 px-6 py-4 text-left transition hover:bg-slate-50">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600"><Info size={17} /></span>
@@ -154,9 +161,9 @@ export default function Profile() {
       <Modal open={pwOpen} onClose={() => setPwOpen(false)} title="Change password"
         footer={<>
           <Button variant="ghost" onClick={() => setPwOpen(false)}>Cancel</Button>
-          <Button onClick={handleChangePassword} disabled={saving}>{saving ? "Saving…" : "Update password"}</Button>
+          <Button type="submit" form="change-password-form" disabled={saving}>{saving ? "Saving…" : "Update password"}</Button>
         </>}>
-        <form onSubmit={handleChangePassword} className="space-y-4">
+        <form id="change-password-form" onSubmit={handleChangePassword} className="space-y-4">
           {pwError && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{pwError}</p>}
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Current password</label>
@@ -166,9 +173,9 @@ export default function Profile() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">New password</label>
-            <input type="password" className={field} value={pwForm.newPassword} required minLength={6}
+            <input type="password" className={field} value={pwForm.newPassword} required minLength={8}
               onChange={(e) => setPwForm((f) => ({ ...f, newPassword: e.target.value }))}
-              placeholder="At least 6 characters" />
+              placeholder="At least 8 characters" />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Confirm new password</label>
@@ -199,7 +206,7 @@ export default function Profile() {
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Features</p>
             {[
-              { icon: BookOpen,  label: "Tasks & Assignments",   desc: "Track and manage your academic workload"    },
+              { icon: BookOpen,  label: "Tasks & Assignments & Exams",   desc: "Track and manage your academic workload"    },
               { icon: Calendar,  label: "Schedule & Reminders",  desc: "Plan study sessions and get email alerts"   },
               { icon: Brain,     label: "AI Recommendations",    desc: "Groq AI suggests what to prioritise"        },
               { icon: Award,     label: "Exam Tracker",          desc: "Monitor exam prep progress"                 },
@@ -220,12 +227,16 @@ export default function Profile() {
           <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Developer</p>
             <p className="text-sm font-semibold text-slate-800">Soem VibolRathana</p>
-            <p className="text-sm font-semibold text-slate-800">Soeurn Tola</p>
-            <p className="text-sm font-semibold text-slate-800">Yuth Molika</p>
             <a href="mailto:soemvibolrathana@gmail.com" className="flex items-center gap-1.5 mt-1 text-xs text-indigo-500 hover:underline">
               <Mail size={11} /> soemvibolrathana@gmail.com
-              <Mail size={11} /> soemvibolrathana@gmail.com
-              <Mail size={11} /> soemvibolrathana@gmail.com
+            </a>
+            <p className="text-sm font-semibold text-slate-800">Soeurn Tola</p>
+            <a href="mailto:soeuntola@gmail.com" className="flex items-center gap-1.5 mt-1 text-xs text-indigo-500 hover:underline">
+              <Mail size={11} /> soeuntola@gmail.com
+            </a>
+            <p className="text-sm font-semibold text-slate-800">Yuth Molika</p>
+            <a href="mailto:yuthmolika@gmail.com" className="flex items-center gap-1.5 mt-1 text-xs text-indigo-500 hover:underline">
+              <Mail size={11} /> yuthmolika@gmail.com
             </a>
           </div>
         </div>
@@ -234,17 +245,13 @@ export default function Profile() {
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit profile"
         footer={<>
           <Button variant="ghost" onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
+          <Button type="submit" form="edit-profile-form" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
         </>}>
-        <form onSubmit={handleSave} className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-linear-to-br from-indigo-500 to-indigo-700 text-xl font-bold text-white">{initials}</div>
-            <button type="button" className="rounded-xl bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-100">Upload picture</button>
-          </div>
+        <form id="edit-profile-form" onSubmit={handleSave} className="space-y-4">
           <div><label className="mb-1 block text-sm font-medium text-slate-700">Full name</label>
-            <input className={field} value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></div>
+            <input className={field} value={form.fullName} required onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></div>
           <div><label className="mb-1 block text-sm font-medium text-slate-700">Email</label>
-            <input type="email" className={field} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+            <input type="email" className={field} value={form.email} required onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
           <div><label className="mb-1 block text-sm font-medium text-slate-700">Major</label>
             <input className={field} value={form.major} onChange={(e) => setForm({ ...form, major: e.target.value })} /></div>
           <div><label className="mb-1 block text-sm font-medium text-slate-700">Phone number</label>

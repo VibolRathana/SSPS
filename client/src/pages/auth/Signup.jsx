@@ -3,13 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Signup() {
-  const { signup } = useAuth();
-  const navigate = useNavigate();
+  const { signup }              = useAuth();
+  const navigate                = useNavigate();
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -19,7 +19,6 @@ export default function Signup() {
       navigate("/app");
     } catch (err) {
        setError(err.response?.data?.message || err.message || "Sign up failed");
-       console.log("Signup error:", err);
     } finally {
       setLoading(false);
     }
@@ -42,7 +41,7 @@ export default function Signup() {
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
           className="mb-4 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-500" />
         <label className="mb-1 block text-sm font-bold text-slate-700">Password</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8}
           className="mb-6 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-500" />
         <button type="submit" disabled={loading}
           className="w-full rounded-xl bg-indigo-600 py-2.5 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">

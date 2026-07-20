@@ -9,7 +9,8 @@ export async function getCourses(req, res) {
     });
     res.json(courses.map(c => ({ id: c.course_id, name: c.name, code: c.code, color: c.color })));
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -25,7 +26,8 @@ export async function createCourse(req, res) {
     });
     res.status(201).json({ id: course.course_id, message: "Course created" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -37,6 +39,7 @@ export async function deleteCourse(req, res) {
     if (count === 0) return res.status(404).json({ message: "Course not found" });
     res.json({ message: "Course deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
