@@ -50,11 +50,7 @@ export async function createReminder(req, res) {
     res.status(201).json({ id: r.reminder_id, message: "Reminder created" });
   } catch (err) {
     console.error(err);
-<<<<<<< HEAD
     res.status(500).json({ message: err.message });
-=======
-    res.status(500).json({ message: "Internal server error" });
->>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
   }
 }
 
