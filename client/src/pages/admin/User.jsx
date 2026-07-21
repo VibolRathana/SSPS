@@ -3,7 +3,7 @@ import { Trash2, ShieldCheck, UserIcon } from "lucide-react";
 import api from "../../api/axios";
 import Topbar from "../../components/layout/Topbar";
 import DataTable from "../../components/ui/DataTable";
-import Badge from "../../components/ui/Badge";
+
 
 export default function AdminUsers() {
   const [users, setUsers]   = useState([]);
@@ -17,6 +17,7 @@ export default function AdminUsers() {
       .finally(() => setLoading(false));
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   async function handleRole(user) {

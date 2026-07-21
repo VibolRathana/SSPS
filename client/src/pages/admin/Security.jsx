@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ShieldCheck, Users, Clock, Database, AlertTriangle } from "lucide-react";
+import { ShieldCheck, Clock, Database, AlertTriangle } from "lucide-react";
 import api from "../../api/axios";
 import Topbar from "../../components/layout/Topbar";
 

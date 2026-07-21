@@ -1,4 +1,5 @@
-import { Examination, Course } from "../models/index.js";
+import { Examination, Course, PriorityResult } from "../models/index.js";
+import { calculatePriority, getPriorityLevel } from "../services/PriorityService.js";
 
 async function findOrCreateCourse(userId, courseName) {
   if (!courseName?.trim()) return null;
@@ -30,6 +31,8 @@ export async function getExams(req, res) {
       date:        fmtDate(e.exam_date),
       rawDate:     e.exam_date,
       preparation: e.preparation,
+      difficulty:  e.difficulty,
+      estimated_hours: e.estimated_hours,
     })));
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -38,14 +41,28 @@ export async function getExams(req, res) {
 
 export async function createExam(req, res) {
   try {
-    const { subject, courseName, examDate, preparation } = req.body;
+    const { subject, courseName, examDate, preparation, difficulty , estimated_hours } = req.body;
     if (!subject || !examDate)
       return res.status(400).json({ message: "Subject and exam date are required" });
     const course_id = await findOrCreateCourse(req.user.id, courseName);
     const exam = await Examination.create({
-      user_id: req.user.id, course_id, subject,
+      user_id: req.user.id, 
+      course_id, 
+      subject,
+      difficulty: difficulty ||"Medium",
       exam_date:   examDate,
       preparation: preparation ?? 0,
+      estimated_hours: estimated_hours ?? 1,
+      
+    });
+    //=== Calculate Priority ===//
+    const score= calculatePriority(exam);
+    await PriorityResult.create({
+      user_id: req.user.id,
+      source_type:"Exam",
+      source_id: exam.exam_id,
+      priority_score:score,
+      priority_level: getPriorityLevel(score),
     });
     res.status(201).json({ id: exam.exam_id, message: "Exam created" });
   } catch (err) {
@@ -55,7 +72,7 @@ export async function createExam(req, res) {
 
 export async function updateExam(req, res) {
   try {
-    const { subject, courseName, examDate, preparation } = req.body;
+    const { subject, courseName, examDate, preparation , difficulty , estimated_hours} = req.body;
     const course_id = await findOrCreateCourse(req.user.id, courseName);
 
     const updates = {};
@@ -63,11 +80,29 @@ export async function updateExam(req, res) {
     if (course_id   != null) updates.course_id   = course_id;
     if (examDate    != null) updates.exam_date    = examDate;
     if (preparation != null) updates.preparation = preparation;
+    if (difficulty  != null) updates.difficulty  =difficulty;
+    if (estimated_hours !=null) update.estimated_hours= estimated_hours;
 
     const [count] = await Examination.update(updates, {
       where: { exam_id: req.params.id, user_id: req.user.id },
     });
     if (count === 0) return res.status(404).json({ message: "Exam not found" });
+    //=== Recalculate Priority ===//
+    const updateExam= await Examination.findByPk(req.params.id);
+    const score=calculatePriority(updateExam);
+    await PriorityResult.update(
+      {
+        priority_score:score,
+        priority_level: getPriorityLevel(score),
+      },
+      {
+        where:{
+          source_type:"Exam",
+          source_id:req.params.id,
+          user_id:req.user.id,
+        }
+      }
+    );
     res.json({ message: "Exam updated" });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -80,6 +115,14 @@ export async function deleteExam(req, res) {
       where: { exam_id: req.params.id, user_id: req.user.id },
     });
     if (count === 0) return res.status(404).json({ message: "Exam not found" });
+    //=== Delete Priority record ===//
+    await PriorityResult.destroy({
+      where:{
+        source_type:"Exam",
+        source_id:req.params.id,
+        user_id: req.user.id,
+      }
+    })
     res.json({ message: "Exam deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });

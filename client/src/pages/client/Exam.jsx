@@ -26,7 +26,7 @@ function daysUntil(rawDate) {
   return Math.round((target - today) / 86400000);
 }
 
-const EMPTY_FORM = { subject: "", courseName: "", examDate: "", preparation: 0 };
+const EMPTY_FORM = { subject: "", courseName: "", examDate: "",difficulty:"Medium", preparation: 0 , estimated_hours:1  };
 
 export default function Exams() {
   const [items, setItems]       = useState([]);
@@ -44,6 +44,7 @@ export default function Exams() {
       .finally(() => setLoading(false));
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   async function handleCreate(e) {
@@ -67,7 +68,10 @@ export default function Exams() {
       subject:     row.name,
       courseName:  row.course || "",
       examDate:    row.rawDate ? new Date(row.rawDate).toISOString().split("T")[0] : "",
+      difficulty:  row.difficulty|| "Medium",
       preparation: row.preparation ?? 0,
+      estimated_hours: row.estimated_hours ?? 1
+     
     });
   }
 
@@ -91,6 +95,7 @@ export default function Exams() {
     try {
       await api.delete(`/exams/${id}`);
       load();
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       alert("Could not delete exam");
     }
@@ -120,6 +125,7 @@ export default function Exams() {
       header: "Preparation",
       render: (r) => <ProgressBar value={r.preparation ?? 0} />,
     },
+    {key: "estimated_hours" , header:"Hours" , render: (r)=> `${r.estimated_hours} h `},
     {
       key: "actions",
       header: "",
@@ -173,6 +179,14 @@ export default function Exams() {
         <input type="date" className={field} value={form.examDate} required
           onChange={(e) => setForm((f) => ({ ...f, examDate: e.target.value }))} />
       </div>
+       <div>
+         <label className="mb-1 block text-sm font-medium text-slate-700">Difficulty</label>
+        <select className={field} value={form.difficulty} onChange={(e)=> setForm(f=>({...f,difficulty:e.target.value}))}>
+          <option>Easy</option>
+          <option>Medium</option>
+          <option>Hard</option>
+        </select>
+      </div>
       <div>
         <label className="mb-1 block text-sm font-medium text-slate-700">
           Preparation: {form.preparation}%
@@ -181,6 +195,22 @@ export default function Exams() {
           value={form.preparation}
           onChange={(e) => setForm((f) => ({ ...f, preparation: Number(e.target.value) }))} />
       </div>
+      <div>
+         <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Estimated Hours
+         </label>
+
+         <input
+             type="number"
+             min="1"
+             className={field}
+             value={form.estimated_hours}
+             onChange={(e) =>
+             setForm((f) => ({...f,estimated_hours: Number(e.target.value),
+      }))
+    }
+  />
+</div>
     </form>
   );
 

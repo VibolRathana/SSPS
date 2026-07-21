@@ -13,9 +13,11 @@ import Assignments from "./pages/client/Assignments";
 import UserProfile from "./pages/client/Profile";
 import Dashboard from "./pages/client/Dashboard";
 import Schedule from "./pages/client/Schedule";
+import StudyAvailability from "./pages/client/studyAvailability";
 import Reminders from "./pages/client/Reminder";
 import AIRecommendation from "./pages/client/AIRecommendation";
 import Exams from "./pages/client/Exam";
+import Priorities from "./pages/client/priorities";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -26,7 +28,7 @@ import Security from "./pages/admin/Security";
 function ProtectedRoute({ children, role }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
-  if (role && user.role !== role) return <Navigate to="/app" replace />;
+  if (role && user.role !== role) return <Navigate to="/" replace />;
   return children;
 }
 
@@ -53,10 +55,12 @@ export default function App() {
             <Route path="tasks" element={<Tasks />} />
             <Route path="assignments" element={<Assignments />} />
             <Route path="schedule" element={<Schedule />} />
+            <Route path="study-availability" element={<StudyAvailability/>}/>
             <Route path="reminders" element={<Reminders />} />
             <Route path="recommendations" element={<AIRecommendation />} />
             <Route path="exams" element={<Exams />} />
             <Route path="profile" element={<UserProfile />} />
+            <Route path="priorities" element={<Priorities/>} />
           </Route>
 
           {/* ---------- Admin app (admins only) ---------- */}

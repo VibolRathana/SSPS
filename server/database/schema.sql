@@ -51,10 +51,14 @@ CREATE TABLE tasks (
   course_id   INT,
   title       VARCHAR(150) NOT NULL,
   description TEXT,
-  priority    ENUM('Low','Medium','High')              NOT NULL DEFAULT 'Medium',
+  difficulty ENUM('Easy','Medium','Hard') NOT NULL DEFAULT 'Medium',
+  estimated_hours DECIMAL(4,1) NOT NULL DEFAULT 1.0,
+  progress INT NOT NULL DEFAULT 0,
   status      ENUM('Pending','In Progress','Completed') NOT NULL DEFAULT 'Pending',
   due_date    DATE NOT NULL,
   created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT chk_task_estimated_hours CHECK (estimated_hours > 0),
+  CONSTRAINT chk_task_progress CHECK(progress BETWEEN 0 AND 100),
   CONSTRAINT fk_tasks_user   FOREIGN KEY (user_id)
     REFERENCES users(user_id)     ON DELETE CASCADE,
   CONSTRAINT fk_tasks_course FOREIGN KEY (course_id)
@@ -70,10 +74,15 @@ CREATE TABLE assignments (
   course_id     INT,
   title         VARCHAR(150) NOT NULL,
   description   TEXT,
-  priority      ENUM('Low','Medium','High')                        NOT NULL DEFAULT 'Medium',
+  difficulty    ENUM('Easy','Medium','Hard') NOT NULL DEFAULT 'Medium',
+  estimated_hours DECIMAL(4,1) NOT NULL DEFAULT 1.0,
+  progress      INT NOT NULL DEFAULT 0,
   status        ENUM('Pending','In Progress','Submitted','Graded') NOT NULL DEFAULT 'Pending',
   due_date      DATE NOT NULL,
   created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT chk_assignments_estimated_hours CHECK(estimated_hours >0),
+  CONSTRAINT chk_assignments_progress CHECK(progress BETWEEN 0 AND 100),
   CONSTRAINT fk_assignments_user   FOREIGN KEY (user_id)
     REFERENCES users(user_id)     ON DELETE CASCADE,
   CONSTRAINT fk_assignments_course FOREIGN KEY (course_id)
@@ -88,6 +97,8 @@ CREATE TABLE examinations (
   user_id     INT NOT NULL,
   course_id   INT,
   subject     VARCHAR(150) NOT NULL,
+  difficulty ENUM('Easy','Medium','Hard') NOT NULL DEFAULT 'Medium',
+   estimated_hours DECIMAL(4,1) NOT NULL DEFAULT 1.0,
   exam_date   DATE NOT NULL,
   preparation INT NOT NULL DEFAULT 0,
   created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -95,27 +106,33 @@ CREATE TABLE examinations (
     REFERENCES users(user_id)     ON DELETE CASCADE,
   CONSTRAINT fk_exams_course FOREIGN KEY (course_id)
     REFERENCES courses(course_id) ON DELETE SET NULL,
-  CONSTRAINT chk_exam_prep CHECK (preparation BETWEEN 0 AND 100)
+  CONSTRAINT chk_exam_prep CHECK (preparation BETWEEN 0 AND 100),
+  CONSTRAINT chk_exam_estimated_hours CHECK( estimated_hours >0)
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------
 -- 6. reminders
 -- ------------------------------------------------------------
 CREATE TABLE reminders (
-  reminder_id   INT AUTO_INCREMENT PRIMARY KEY,
-  user_id       INT NOT NULL,
-  reminder_type ENUM('Task','Assignment','Exam','Study Session') NOT NULL,
-  description   VARCHAR(255),
-  remind_date   DATE NOT NULL,
-  remind_time   TIME NOT NULL DEFAULT '23:59:00',
-  notify_before ENUM('15 minutes','1 hour','1 day') NOT NULL DEFAULT '1 hour',
-  email_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-  email_sent    BOOLEAN NOT NULL DEFAULT FALSE,
-  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_reminders_user FOREIGN KEY (user_id)
-    REFERENCES users(user_id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+    reminder_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    reminder_type ENUM('Task','Assignment','Exam','Study Session') NOT NULL,
+    description VARCHAR(255),
+    remind_date DATE NOT NULL,
+    remind_time TIME NOT NULL DEFAULT '23:59:00',
+    notify_before ENUM('15 minutes','1 hour','1 day') DEFAULT '1 hour',
+    email_enabled BOOLEAN DEFAULT TRUE,
+    email_sent BOOLEAN DEFAULT FALSE,
+    push_sent BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_reminder_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
 
 -- ------------------------------------------------------------
 -- 7. study_sessions
@@ -154,6 +171,77 @@ CREATE TABLE ai_recommendations (
     REFERENCES users(user_id) ON DELETE CASCADE,
   CONSTRAINT chk_reco_score CHECK (priority_score BETWEEN 0 AND 100)
 ) ENGINE=InnoDB;
+-- ------------------------------------------------------------
+ -- 9. priority_result
+--    Stores the result after calculate the task assignments and examinations
+--   shown on the AI Recommendations page.
+-- ------------------------------------------------------------
+ CREATE TABLE priority_results (
+
+    priority_result_id INT
+    AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT NOT NULL,
+
+    source_type ENUM(
+      'Task',
+      'Assignment',
+      'Exam'
+    ) NOT NULL,
+
+    source_id INT NOT NULL,
+
+    priority_score FLOAT NOT NULL,
+
+    priority_level ENUM(
+      'Low',
+      'Medium',
+      'High'
+    ) NOT NULL,
+
+    generated_at DATETIME
+    DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY(user_id)
+    REFERENCES users(user_id)
+    ON DELETE CASCADE
+
+)ENGINE=InnoDB;
+-- ------------------------------------------------------------
+ -- 10. study_availability
+--    Stores the estimated hour that user input 
+-- ------------------------------------------------------------
+CREATE TABLE study_availability(
+   availability_id INT AUTO_INCREMENT PRIMARY KEY,
+   user_id         INT NOT NULL,
+   day_of_week ENUM('Monday' , 'Tuesday' , 'Wednesday' , 'Thursday' , 'Friday' , 'Saturday' , 'Sunday') NOT NULL,
+   available_hours INT NOT NULL,
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   CHECK(available_hours >=0),
+   FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
+
+)ENGINE=InnoDB;
+
+-- ============================================
+-- Push Subscriptions
+-- ============================================
+CREATE TABLE push_subscriptions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    endpoint TEXT NOT NULL,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_push_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+
+
 
 -- ============================================================
 --  Indexes

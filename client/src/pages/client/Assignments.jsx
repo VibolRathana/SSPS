@@ -8,7 +8,7 @@ import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 
 const statusVariant = { Pending: "pending", "In Progress": "progress", Submitted: "done", Graded: "done" };
-const EMPTY_FORM = { title: "", courseName: "", priority: "Medium", dueDate: "", status: "Pending" };
+const EMPTY_FORM = { title: "", courseName: "", difficulty:"Medium", progress:0,estimated_hours:1,dueDate: "", status: "Pending" };
 
 export default function Assignments() {
   const [items, setItems]       = useState([]);
@@ -26,6 +26,7 @@ export default function Assignments() {
       .finally(() => setLoading(false));
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   async function handleCreate(e) {
@@ -48,7 +49,9 @@ export default function Assignments() {
     setForm({
       title:      row.name,
       courseName: row.course || "",
-      priority:   row.priority || "Medium",
+      difficulty: row.difficulty||"Medium",
+      progress:   row.progress??0,
+      estimated_hours : row.estimated_hours ??1,
       dueDate:    row.rawDue ? new Date(row.rawDue).toISOString().split("T")[0] : "",
       status:     row.status || "Pending",
     });
@@ -74,6 +77,7 @@ export default function Assignments() {
     try {
       await api.delete(`/assignments/${id}`);
       load();
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       alert("Could not delete assignment");
     }
@@ -83,7 +87,9 @@ export default function Assignments() {
     { key: "name", header: "Assignment", className: "font-semibold" },
     { key: "course", header: "Course" },
     { key: "due", header: "Due date" },
-    { key: "priority", header: "Priority", render: (r) => <Badge variant={r.priority?.toLowerCase()}>{r.priority}</Badge> },
+    { key: "difficulty",header:"Difficulty",render:(r)=>(<Badge>{r.difficulty}</Badge>)},
+    { key: "progress",header:"Progress", render:(r)=>(`${r.progress ?? 0}%`)},
+    { key: "estimated_hours", header : "Hours" , render: (r)=> `${r.estimated_hours} h`},
     { key: "status",   header: "Status",   render: (r) => <Badge variant={statusVariant[r.status]}>{r.status}</Badge> },
     {
       key: "actions",
@@ -124,14 +130,32 @@ export default function Assignments() {
           placeholder="e.g. HCI" />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">Priority</label>
-        <select className={field} value={form.priority}
-          onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}>
-          <option>Low</option>
+         <label className="mb-1 block text-sm font-medium text-slate-700">Difficulty</label>
+         <select className={field} value={form.difficulty} onChange={(e)=> setForm(f=>({...f,difficulty:e.target.value}))}>
+          <option>Easy</option>
           <option>Medium</option>
-          <option>High</option>
+          <option>Hard</option>
         </select>
       </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-slate-700">Progress: {form.progress}%</label>
+        <input typr="range" min="0" max="100" value={form.progress} className="w-full accent-indigo-500" onChange={(e)=>setForm(f=>({...f,progress:Number(e.target.value)}))}/>
+      </div>
+      <div>
+         <label className="mb-1 block text-sm font-medium text-slate-700">
+               Estimated Hours
+         </label>
+
+         <input
+             type="number"
+             min="1"
+             className={field}
+             value={form.estimated_hours}
+             onChange={(e) => setForm((f) => ({...f,estimated_hours: Number(e.target.value),
+      }))
+    }
+  />
+</div>
       <div>
         <label className="mb-1 block text-sm font-medium text-slate-700">Due date</label>
         <input type="date" className={field} value={form.dueDate} required

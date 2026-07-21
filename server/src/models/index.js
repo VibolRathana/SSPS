@@ -31,7 +31,9 @@ export const Task = sequelize.define("Task", {
   course_id:   DataTypes.INTEGER,
   title:       { type: DataTypes.STRING(150), allowNull: false },
   description: DataTypes.TEXT,
-  priority:    { type: DataTypes.ENUM("Low", "Medium", "High"),              defaultValue: "Medium" },
+  difficulty:  {type:DataTypes.ENUM("Easy","Medium","Hard"), defaultValue:"Medium"},
+  estimated_hours :{type:DataTypes.DECIMAL(4,1), allowNull:false, defaultValue:1.0},
+  progress:    {type:DataTypes.INTEGER, defaultValue:0},
   status:      { type: DataTypes.ENUM("Pending", "In Progress", "Completed"), defaultValue: "Pending" },
   due_date:    { type: DataTypes.DATEONLY,    allowNull: false },
 }, { tableName: "tasks", createdAt: "created_at", updatedAt: false });
@@ -43,7 +45,9 @@ export const Assignment = sequelize.define("Assignment", {
   course_id:     DataTypes.INTEGER,
   title:         { type: DataTypes.STRING(150), allowNull: false },
   description:   DataTypes.TEXT,
-  priority:      { type: DataTypes.ENUM("Low", "Medium", "High"),                        defaultValue: "Medium" },
+  difficulty:    {type:DataTypes.ENUM("Easy","Medium","Hard"), defaultValue:"Medium"},
+  estimated_hours:{type:DataTypes.DECIMAL(4,1), allowNull:false , defaultValue:1.0},
+  progress:      {type:DataTypes.INTEGER, defaultValue:0},
   status:        { type: DataTypes.ENUM("Pending", "In Progress", "Submitted", "Graded"), defaultValue: "Pending" },
   due_date:      { type: DataTypes.DATEONLY,    allowNull: false },
 }, { tableName: "assignments", createdAt: "created_at", updatedAt: false });
@@ -55,6 +59,8 @@ export const Examination = sequelize.define("Examination", {
   course_id:   DataTypes.INTEGER,
   subject:     { type: DataTypes.STRING(150), allowNull: false },
   exam_date:   { type: DataTypes.DATEONLY,    allowNull: false },
+  difficulty:  { type: DataTypes.ENUM("Easy","Medium","Hard"), defaultValue:"Medium"},
+  estimated_hours:{type:DataTypes.DECIMAL(4,1), allowNull:false,defaultValue:1.0},
   preparation: { type: DataTypes.INTEGER,     defaultValue: 0 },
 }, { tableName: "examinations", createdAt: "created_at", updatedAt: false });
 
@@ -69,6 +75,7 @@ export const Reminder = sequelize.define("Reminder", {
   notify_before: { type: DataTypes.ENUM("15 minutes", "1 hour", "1 day"), defaultValue: "1 hour" },
   email_enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
   email_sent:    { type: DataTypes.BOOLEAN, defaultValue: false },
+  push_sent:     { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   is_active:     { type: DataTypes.BOOLEAN, defaultValue: true },
 }, { tableName: "reminders", createdAt: "created_at", updatedAt: false });
 
@@ -92,6 +99,99 @@ export const AiRecommendation = sequelize.define("AiRecommendation", {
   recommended_action: { type: DataTypes.TEXT,    allowNull: false },
   generated_at:       { type: DataTypes.DATE,    defaultValue: DataTypes.NOW },
 }, { tableName: "ai_recommendations", timestamps: false });
+
+// ── PushSubscription ──────────────────────────────────────────────
+export const PushSubscription = sequelize.define("PushSubscription", {
+  id:       { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  user_id:  { type: DataTypes.INTEGER, allowNull: false },
+  endpoint: { type: DataTypes.TEXT,    allowNull: false },
+  p256dh:   { type: DataTypes.TEXT,    allowNull: false },
+  auth:     { type: DataTypes.TEXT,    allowNull: false },
+}, { tableName: "push_subscriptions", createdAt: "created_at", updatedAt: false });
+
+
+
+// ___PriorityAi______________________________________________
+export const PriorityResult = sequelize.define(
+  "PriorityResult",
+  {
+    priority_result_id:{
+      type:DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    user_id:{
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    source_type:{
+      type: DataTypes.ENUM(
+        "Task",
+        "Assignment",
+        "Exam"
+      ),
+      allowNull: false,
+    },
+    source_id:{
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    priority_score:{
+      type: DataTypes.DECIMAL(5,2),
+      allowNull: false,
+    },
+    priority_level:{
+      type: DataTypes.ENUM(
+        "Low",
+        "Medium",
+        "High"
+      ),
+      allowNull: false,
+    },
+    generated_at:{
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+
+  },
+  {
+    tableName: "priority_results",
+    timestamps: false,
+  }
+);
+// -- StudyAvailability ---------------------------------------------
+ export const StudyAvailability = sequelize.define(
+  "StudyAvailability",
+  {
+    availability_id:{
+      type:DataTypes.INTEGER,
+      primaryKey:true,
+      autoIncrement:true,
+    },
+    user_id:{
+      type:DataTypes.INTEGER,
+      allowNull:false,
+    },
+    day_of_week:{
+      type:DataTypes.ENUM("Monday" , "Tuesday" , "Wednesday" , "Thursday" , "Friday" , "Saturday" , "Sunday"),
+      allowNull: false,
+    },
+    available_hours:{
+      type:DataTypes.INTEGER,
+      allowNull:false,
+    },
+    created_at:{
+      type:DataTypes.DATE,
+      defaultValue:DataTypes.NOW,
+    },
+
+  },
+  {
+    tableName:"study_availability",
+    timestamps:false,
+  }
+
+ )
 
 // ── Associations ──────────────────────────────────────────────────
 User.hasMany(Course,            { foreignKey: "user_id" });
@@ -122,3 +222,11 @@ Course.hasMany(StudySession,    { foreignKey: "course_id" });
 
 User.hasMany(AiRecommendation,  { foreignKey: "user_id" });
 AiRecommendation.belongsTo(User,{ foreignKey: "user_id" });
+
+User.hasMany(PriorityResult,    {foreignKey:"user_id"});
+PriorityResult.belongsTo(User,  {foreignKey:"user_id"});
+User.hasMany(StudyAvailability, {foreignKey:"user_id"});
+User.belongsTo(User,            {foreignKey:"user_id"});
+
+User.hasMany(PushSubscription,  { foreignKey: "user_id" });
+PushSubscription.belongsTo(User,{ foreignKey: "user_id" });

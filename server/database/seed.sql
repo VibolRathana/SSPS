@@ -46,53 +46,53 @@ INSERT INTO courses (user_id, name, code, color) VALUES
 -- ============================================================
 
 -- Dara's tasks
-INSERT INTO tasks (user_id, course_id, title, description, priority, status, due_date) VALUES
-  (4, 1, 'Implement Binary Search Tree',  'Code BST with insert, delete, search operations', 'High',   'In Progress', '2026-07-05'),
-  (4, 1, 'Graph Algorithm Assignment',    'BFS and DFS traversal on adjacency list',          'High',   'Pending',     '2026-07-12'),
-  (4, 2, 'ER Diagram for Hotel System',   'Design a full ER diagram and normalise to 3NF',    'Medium', 'Pending',     '2026-07-08'),
-  (4, 2, 'SQL Query Practice',            'Write 20 advanced SQL queries from lecture slides', 'Medium', 'Completed',   '2026-06-20'),
-  (4, 3, 'Build REST API with Node.js',   'CRUD endpoints for a todo app using Express',       'High',   'In Progress', '2026-07-10'),
-  (4, 4, 'Process Scheduling Report',     'Compare Round Robin vs Priority Scheduling',        'Low',    'Pending',     '2026-07-18');
+INSERT INTO tasks (user_id, course_id, title, description,difficulty,progress, status, due_date) VALUES
+  (4, 1, 'Implement Binary Search Tree',  'Code BST with insert, delete, search operations', 'Medium', 40,  'In Progress', '2026-07-05'),
+  (4, 1, 'Graph Algorithm Assignment',    'BFS and DFS traversal on adjacency list',          'Low', 20,  'Pending',     '2026-07-12'),
+  (4, 2, 'ER Diagram for Hotel System',   'Design a full ER diagram and normalise to 3NF',    'Medium', 60,'Pending',     '2026-07-08'),
+  (4, 2, 'SQL Query Practice',            'Write 20 advanced SQL queries from lecture slides', 'Medium', 30,'Completed',   '2026-06-20'),
+  (4, 3, 'Build REST API with Node.js',   'CRUD endpoints for a todo app using Express',       'High', 20,  'In Progress', '2026-07-10'),
+  (4, 4, 'Process Scheduling Report',     'Compare Round Robin vs Priority Scheduling',        'Low',  40,  'Pending',     '2026-07-18');
 
 -- Sreyna's tasks
-INSERT INTO tasks (user_id, course_id, title, description, priority, status, due_date) VALUES
-  (5, 5, 'Subnet Mask Calculation',       'Calculate subnets for given IP ranges',             'Medium', 'Completed',   '2026-06-22'),
-  (5, 6, 'Use Case Diagram',              'Draw use case diagram for e-commerce system',       'High',   'In Progress', '2026-07-06'),
-  (5, 7, 'Flutter Login Screen',          'Implement login UI with form validation',            'High',   'Pending',     '2026-07-09');
+INSERT INTO tasks (user_id, course_id, title, description, difficulty,progress, status, due_date) VALUES
+  (5, 5, 'Subnet Mask Calculation',       'Calculate subnets for given IP ranges',             'Medium', 30,'Completed',   '2026-06-22'),
+  (5, 6, 'Use Case Diagram',              'Draw use case diagram for e-commerce system',       'High',  40, 'In Progress', '2026-07-06'),
+  (5, 7, 'Flutter Login Screen',          'Implement login UI with form validation',            'High', 50,  'Pending',     '2026-07-09');
 
 -- ============================================================
 -- 4. ASSIGNMENTS
 -- ============================================================
 
 -- Dara's assignments
-INSERT INTO assignments (user_id, course_id, title, description, priority, status, due_date) VALUES
-  (4, 1, 'Data Structures Mid-term Project', 'Implement a full stack using linked list',       'High',   'In Progress', '2026-07-15'),
-  (4, 2, 'Database Design Report',           '10-page report on relational vs NoSQL databases','Medium', 'Pending',     '2026-07-20'),
-  (4, 3, 'Full Stack Web App',               'Build a complete CRUD app with React + Node',    'High',   'Pending',     '2026-07-25'),
-  (4, 4, 'OS Lab Report',                    'Document results of virtual memory experiment',  'Low',    'Submitted',   '2026-06-18');
+INSERT INTO assignments (user_id, course_id, title, description, difficulty,progress, status, due_date) VALUES
+  (4, 1, 'Data Structures Mid-term Project', 'Implement a full stack using linked list',       'High', 40,  'In Progress', '2026-07-15'),
+  (4, 2, 'Database Design Report',           '10-page report on relational vs NoSQL databases','Medium', 30, 'Pending',     '2026-07-20'),
+  (4, 3, 'Full Stack Web App',               'Build a complete CRUD app with React + Node',    'High',  20, 'Pending',     '2026-07-25'),
+  (4, 4, 'OS Lab Report',                    'Document results of virtual memory experiment',  'Low',  30,  'Submitted',   '2026-06-18');
 
 -- Sreyna's assignments
-INSERT INTO assignments (user_id, course_id, title, description, priority, status, due_date) VALUES
-  (5, 5, 'Network Topology Design',    'Design and simulate a LAN topology using Packet Tracer', 'High',   'Pending',     '2026-07-14'),
-  (5, 6, 'Software Requirements Spec', 'Write an SRS document for a library management system',   'High',   'In Progress', '2026-07-18'),
-  (5, 7, 'Mobile App Prototype',       'Build a working prototype of a food delivery app',        'Medium', 'Pending',     '2026-07-28');
+INSERT INTO assignments (user_id, course_id, title, description, difficulty,progress, status, due_date) VALUES
+  (5, 5, 'Network Topology Design',    'Design and simulate a LAN topology using Packet Tracer', 'High', 50,  'Pending',     '2026-07-14'),
+  (5, 6, 'Software Requirements Spec', 'Write an SRS document for a library management system',   'High', 60,  'In Progress', '2026-07-18'),
+  (5, 7, 'Mobile App Prototype',       'Build a working prototype of a food delivery app',        'Medium', 40, 'Pending',     '2026-07-28');
 
 -- ============================================================
 -- 5. EXAMINATIONS
 -- ============================================================
 
 -- Dara's exams
-INSERT INTO examinations (user_id, course_id, subject, exam_date, preparation) VALUES
-  (4, 1, 'Data Structures Final',   '2026-07-28', 45),
-  (4, 2, 'Database Systems Final',  '2026-07-30', 30),
-  (4, 3, 'Web Development Final',   '2026-08-02', 20),
-  (4, 4, 'Operating Systems Final', '2026-08-05', 15);
+INSERT INTO examinations (user_id, course_id, subject, exam_date, preparation, difficulty) VALUES
+  (4, 1, 'Data Structures Final',   '2026-07-28', 45, "Medium"),
+  (4, 2, 'Database Systems Final',  '2026-07-30', 30, "Medium"),
+  (4, 3, 'Web Development Final',   '2026-08-02', 20, "Easy"),
+  (4, 4, 'Operating Systems Final', '2026-08-05', 15, "Hard");
 
 -- Sreyna's exams
-INSERT INTO examinations (user_id, course_id, subject, exam_date, preparation) VALUES
-  (5, 5, 'Network Fundamentals Final', '2026-07-29', 50),
-  (5, 6, 'Software Engineering Final', '2026-08-01', 35),
-  (5, 7, 'Mobile Development Final',   '2026-08-04', 25);
+INSERT INTO examinations (user_id, course_id, subject, exam_date, preparation,difficulty) VALUES
+  (5, 5, 'Network Fundamentals Final', '2026-07-29', 50, "Medium"),
+  (5, 6, 'Software Engineering Final', '2026-08-01', 35, "Easy"),
+  (5, 7, 'Mobile Development Final',   '2026-08-04', 25, "Hard");
 
 -- ============================================================
 -- 6. STUDY SESSIONS  (schedule page data for Dara)

@@ -24,6 +24,7 @@ export async function getReminders(req, res) {
     });
     res.json(rows.map(fmt));
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 }
@@ -43,6 +44,7 @@ export async function createReminder(req, res) {
     });
     res.status(201).json({ id: r.reminder_id, message: "Reminder created" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 }
@@ -64,6 +66,7 @@ export async function updateReminder(req, res) {
     if (count === 0) return res.status(404).json({ message: "Reminder not found" });
     res.json({ message: "Reminder updated" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 }
@@ -77,7 +80,8 @@ export async function toggleReminder(req, res) {
     await reminder.update({ is_active: !reminder.is_active });
     res.json({ message: "Toggled" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -89,6 +93,7 @@ export async function deleteReminder(req, res) {
     if (count === 0) return res.status(404).json({ message: "Reminder not found" });
     res.json({ message: "Reminder deleted" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 }

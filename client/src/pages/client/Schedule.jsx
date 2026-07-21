@@ -87,6 +87,7 @@ export default function Schedule() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiInit,    setAiInit]    = useState(true);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadSessions(); }, [viewDate]);
 
   useEffect(() => {
@@ -197,7 +198,10 @@ export default function Schedule() {
     try {
       await api.delete(`/schedule/${id}`);
       loadSessions();
-    } catch {}
+    
+    } catch(err){
+      console.error(err);
+    }
   }
 
   function fmtDuration(d) {

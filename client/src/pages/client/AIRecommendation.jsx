@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, RefreshCw, Clock, Send, Bot, User, Calendar, CheckSquare, Plus, ChevronRight } from "lucide-react";
+import { Sparkles, RefreshCw, Clock, Send, Bot, User, Calendar, Plus } from "lucide-react";
 import api from "../../api/axios";
 import Topbar from "../../components/layout/Topbar";
 import Button from "../../components/ui/Button";
@@ -15,7 +15,7 @@ function MarkdownText({ text }) {
         if (line.trim().startsWith("- ") || line.trim().startsWith("* "))
           return <div key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" /><span dangerouslySetInnerHTML={{ __html: html.replace(/^[-*]\s/, "") }} /></div>;
         if (/^\d+\./.test(line.trim()))
-          return <div key={i} className="flex gap-2"><span className="shrink-0 font-semibold text-indigo-600">{line.match(/^\d+/)[0]}.</span><span dangerouslySetInnerHTML={{ __html: html.replace(/^\d+\.\s*/, "") }} /></div>;
+          return <div key={i} className="flex gap-2"><span className="shrink-0 font-semibold text-indigo-600">{line.match(/^\d+/)?.[0]}.</span><span dangerouslySetInnerHTML={{ __html: html.replace(/^\d+\.\s*/, "") }} /></div>;
         if (line.startsWith("###")) return <p key={i} className="font-bold text-slate-900 mt-2" dangerouslySetInnerHTML={{ __html: html.replace(/^###\s*/, "") }} />;
         if (line.startsWith("##"))  return <p key={i} className="font-bold text-slate-900 text-base mt-2" dangerouslySetInnerHTML={{ __html: html.replace(/^##\s*/, "") }} />;
         return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />;
@@ -24,19 +24,7 @@ function MarkdownText({ text }) {
   );
 }
 
-// ── Score label colors ────────────────────────────────────────────
-const SCORE_STYLE = {
-  Critical: "bg-red-100 text-red-700 border-red-200",
-  Urgent:   "bg-orange-100 text-orange-700 border-orange-200",
-  Moderate: "bg-amber-100 text-amber-700 border-amber-200",
-  Low:      "bg-slate-100 text-slate-600 border-slate-200",
-};
-const SCORE_BAR = {
-  Critical: "bg-red-500",
-  Urgent:   "bg-orange-400",
-  Moderate: "bg-amber-400",
-  Low:      "bg-slate-300",
-};
+
 
 const SESSION_DOT = {
   indigo: "bg-indigo-500", orange: "bg-orange-400", green: "bg-green-500",
@@ -46,7 +34,6 @@ const SESSION_DOT = {
 // ── Tabs ──────────────────────────────────────────────────────────
 const TABS = [
   { id: "plan",     label: "AI Plan",   icon: Sparkles  },
-  { id: "scores",   label: "Scores",    icon: ChevronRight },
   { id: "schedule", label: "Schedule",  icon: Calendar  },
   { id: "chat",     label: "Chat",      icon: Bot       },
 ];
@@ -56,7 +43,10 @@ function ssGet(key, fallback) {
   try { const v = sessionStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
 }
 function ssSet(key, value) {
-  try { sessionStorage.setItem(key, JSON.stringify(value)); } catch {}
+  try { sessionStorage.setItem(key, JSON.stringify(value)); }
+  catch(err){
+    console.error(err);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -74,12 +64,9 @@ export default function AIRecommendation() {
   const [planLoading,    setPlanLoading]    = useState(false);
   const [planInit,       setPlanInit]       = useState(true);
 
-  // ── Scores tab ──
-  const [scores,        setScores]        = useState(() => ssGet("ai_scores", null));
-  const [scoresLoading, setScoresLoading] = useState(false);
-
+  
   // ── Schedule tab ──
-  const [sessions,         setSessions]         = useState(() => ssGet("ai_sessions", null));
+  const [sessions,         setSessions]         = useState(() => ssGet("ai_sessions", []));
   const [schedLoading,     setSchedLoading]     = useState(false);
   const [addingAll,        setAddingAll]        = useState(false);
   const [addedIds,         setAddedIds]         = useState(() => new Set(ssGet("ai_added", [])));
@@ -96,6 +83,7 @@ export default function AIRecommendation() {
 
   // load last plan on mount (only if not already cached)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (recommendation) { setPlanInit(false); return; }
     api.get("/recommendations")
       .then(r => {
@@ -108,7 +96,7 @@ export default function AIRecommendation() {
       })
       .catch(() => {})
       .finally(() => setPlanInit(false));
-  }, []);
+  }, [recommendation]);
 
   // auto-scroll chat
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -126,27 +114,24 @@ export default function AIRecommendation() {
     finally { setPlanLoading(false); }
   }
 
-  async function handleGetScores() {
-    setScoresLoading(true);
-    try {
-      const { data } = await api.post("/recommendations/scores");
-      setScores(data.scores);
-      ssSet("ai_scores", data.scores);
-    } catch (err) { alert(err.response?.data?.message || "Could not generate scores."); }
-    finally { setScoresLoading(false); }
-  }
 
   async function handleGenerateSchedule() {
     setSchedLoading(true);
-    setSessions(null);
-    setAddedIds(new Set());
-    ssSet("ai_sessions", null);
-    ssSet("ai_added", []);
     try {
       const { data } = await api.post("/recommendations/generate-schedule");
-      setSessions(data.sessions);
-      ssSet("ai_sessions", data.sessions);
-    } catch (err) { alert(err.response?.data?.message || "Could not generate schedule."); }
+      console.log("API Response:");
+      console.log(data);
+      console.log("Session:");
+      console.log(data.sessions);
+     const newSessions = Array.isArray(data.sessions)
+  ? data.sessions
+  : [];
+
+setSessions(newSessions);
+
+ssSet("ai_sessions", newSessions);
+      
+    } catch (err) { console.error(err); }
     finally { setSchedLoading(false); }
   }
 
@@ -159,6 +144,7 @@ export default function AIRecommendation() {
         ssSet("ai_added", [...next]);
         return next;
       });
+    // eslint-disable-next-line no-unused-vars
     } catch (err) { alert("Could not add session."); }
     finally { setAddingIdx(null); }
   }
@@ -171,6 +157,7 @@ export default function AIRecommendation() {
       setAddedIds(allIdx);
       ssSet("ai_added", [...allIdx]);
       alert(`${data.added} sessions added to your schedule!`);
+    // eslint-disable-next-line no-unused-vars
     } catch (err) { alert("Could not add sessions."); }
     finally { setAddingAll(false); }
   }
@@ -191,6 +178,7 @@ export default function AIRecommendation() {
         ssSet("ai_chat", next);
         return next;
       });
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       setMessages(prev => {
         const next = [...prev, { role: "assistant", content: "Sorry, I couldn't respond. Please try again." }];
@@ -267,52 +255,7 @@ export default function AIRecommendation() {
             </div>
           )}
 
-          {/* ── Tab: Scores ── */}
-          {tab === "scores" && (
-            <div className="space-y-4">
-              <Button onClick={handleGetScores} disabled={scoresLoading} className="w-full justify-center bg-indigo-600 text-white hover:bg-indigo-700">
-                {scoresLoading ? <><RefreshCw size={14} className="animate-spin" /> Scoring…</> : <><Sparkles size={14} /> Generate urgency scores</>}
-              </Button>
-
-              {scoresLoading && (
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3 animate-pulse">
-                  {[1,2,3].map(i => <div key={i} className="h-14 rounded-xl bg-slate-100" />)}
-                </div>
-              )}
-
-              {!scoresLoading && scores?.length === 0 && (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-                  <CheckSquare size={28} className="mx-auto mb-2 text-slate-200" />
-                  <p className="text-sm text-slate-500">No pending items to score.</p>
-                </div>
-              )}
-
-              {!scoresLoading && scores?.length > 0 && (
-                <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                  <div className="border-b border-slate-100 px-5 py-3 flex items-center justify-between">
-                    <h4 className="font-semibold text-slate-900 text-sm">Urgency Scores</h4>
-                    <span className="text-xs text-slate-400">{scores.length} items</span>
-                  </div>
-                  <div className="divide-y divide-slate-100">
-                    {scores.sort((a, b) => b.score - a.score).map((s, i) => (
-                      <div key={i} className="px-5 py-3.5">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${s.type === "Task" ? "bg-indigo-50 text-indigo-600 border-indigo-100" : s.type === "Assignment" ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-purple-50 text-purple-600 border-purple-100"}`}>{s.type}</span>
-                          <p className="flex-1 truncate text-sm font-semibold text-slate-800">{s.title}</p>
-                          <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${SCORE_STYLE[s.label] ?? SCORE_STYLE.Low}`}>{s.label}</span>
-                          <span className="shrink-0 text-sm font-bold text-slate-700 w-10 text-right">{s.score}</span>
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-slate-100">
-                          <div className={`h-1.5 rounded-full transition-all ${SCORE_BAR[s.label] ?? "bg-slate-300"}`} style={{ width: `${s.score}%` }} />
-                        </div>
-                        {s.reason && <p className="mt-1.5 text-xs text-slate-400">{s.reason}</p>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+    
 
           {/* ── Tab: Schedule ── */}
           {tab === "schedule" && (
