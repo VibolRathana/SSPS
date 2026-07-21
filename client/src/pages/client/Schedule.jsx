@@ -168,13 +168,9 @@ export default function Schedule() {
     try {
       await api.delete(`/schedule/${id}`);
       loadSessions();
-<<<<<<< HEAD
-    } catch { /* empty */ }
-=======
     } catch {
       alert("Failed to delete session.");
     }
->>>>>>> 0c0bf1d (update front end and backend and security)
   }
 
   function fmtDuration(d) {

@@ -75,12 +75,7 @@ export default function Tasks() {
     try {
       await api.delete(`/tasks/${id}`);
       loadTasks();
-<<<<<<< HEAD
-    // eslint-disable-next-line no-unused-vars
-    } catch (err) {
-=======
     } catch {
->>>>>>> 0c0bf1d (update front end and backend and security)
       alert("Could not delete task");
     }
   }

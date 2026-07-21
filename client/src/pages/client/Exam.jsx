@@ -101,12 +101,7 @@ export default function Exams() {
     try {
       await api.delete(`/exams/${id}`);
       load();
-<<<<<<< HEAD
-    // eslint-disable-next-line no-unused-vars
-    } catch (err) {
-=======
     } catch {
->>>>>>> 0c0bf1d (update front end and backend and security)
       alert("Could not delete exam");
     }
   }
