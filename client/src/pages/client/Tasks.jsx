@@ -26,7 +26,6 @@ export default function Tasks() {
       .finally(() => setLoading(false));
   }
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadTasks(); }, []);
 
   async function handleCreate(e) {
