@@ -1,15 +1,12 @@
+<<<<<<< HEAD
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect } from "react";
+=======
+import { useEffect } from "react";
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
-/**
- * Controlled modal.
- * open:    boolean
- * onClose: () => void
- * title:   header text
- * footer:  node rendered in the footer (e.g. Cancel / Confirm buttons)
- */
 export default function Modal({
   open,
   onClose,

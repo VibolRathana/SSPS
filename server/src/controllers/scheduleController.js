@@ -41,7 +41,8 @@ export async function getSessions(req, res) {
       courseId:  s.course_id,
     })));
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -63,7 +64,8 @@ export async function createSession(req, res) {
     });
     res.status(201).json({ id: s.session_id });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -75,28 +77,32 @@ export async function updateSession(req, res) {
 
     const updates = {};
     if (title    != null) updates.title        = title;
-    if (course_id!= null) updates.course_id    = course_id;
+    if (courseName !== undefined) updates.course_id = course_id;
     if (date     != null) updates.session_date = date;
     if (startTime!= null) updates.start_time   = startTime;
     if (duration != null) updates.duration     = duration;
     if (color    != null) updates.color        = color;
 
-    await StudySession.update(updates, {
+    const [count] = await StudySession.update(updates, {
       where: { session_id: req.params.id, user_id: uid },
     });
+    if (count === 0) return res.status(404).json({ message: "Study session not found" });
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
 export async function deleteSession(req, res) {
   try {
-    await StudySession.destroy({
+    const count = await StudySession.destroy({
       where: { session_id: req.params.id, user_id: req.user.id },
     });
+    if (count === 0) return res.status(404).json({ message: "Study session not found" });
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

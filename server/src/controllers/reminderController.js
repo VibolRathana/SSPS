@@ -13,6 +13,7 @@ function fmt(r) {
     emailEnabled:  r.email_enabled,
     isActive:      r.is_active,
     emailSent:     r.email_sent,
+    pushSent:      r.push_sent,
   };
 }
 
@@ -25,7 +26,11 @@ export async function getReminders(req, res) {
     res.json(rows.map(fmt));
   } catch (err) {
     console.error(err);
+<<<<<<< HEAD
     res.status(500).json({ message: err.message });
+=======
+    res.status(500).json({ message: "Internal server error" });
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
   }
 }
 
@@ -45,7 +50,11 @@ export async function createReminder(req, res) {
     res.status(201).json({ id: r.reminder_id, message: "Reminder created" });
   } catch (err) {
     console.error(err);
+<<<<<<< HEAD
     res.status(500).json({ message: err.message });
+=======
+    res.status(500).json({ message: "Internal server error" });
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
   }
 }
 
@@ -53,7 +62,7 @@ export async function updateReminder(req, res) {
   try {
     const { type, remindDate, remindTime, notifyBefore, description } = req.body;
 
-    const updates = { email_sent: false };
+    const updates = { email_sent: false, push_sent: false };
     if (type        != null) updates.reminder_type = type;
     if (description != null) updates.description   = description;
     if (remindDate  != null) updates.remind_date    = remindDate;
@@ -67,7 +76,11 @@ export async function updateReminder(req, res) {
     res.json({ message: "Reminder updated" });
   } catch (err) {
     console.error(err);
+<<<<<<< HEAD
     res.status(500).json({ message: err.message });
+=======
+    res.status(500).json({ message: "Internal server error" });
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
   }
 }
 
@@ -94,6 +107,10 @@ export async function deleteReminder(req, res) {
     res.json({ message: "Reminder deleted" });
   } catch (err) {
     console.error(err);
+<<<<<<< HEAD
     res.status(500).json({ message: err.message });
+=======
+    res.status(500).json({ message: "Internal server error" });
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
   }
 }

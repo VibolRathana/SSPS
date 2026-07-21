@@ -35,7 +35,8 @@ export async function getExams(req, res) {
       estimated_hours: e.estimated_hours,
     })));
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -66,7 +67,8 @@ export async function createExam(req, res) {
     });
     res.status(201).json({ id: exam.exam_id, message: "Exam created" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -77,7 +79,7 @@ export async function updateExam(req, res) {
 
     const updates = {};
     if (subject     != null) updates.subject     = subject;
-    if (course_id   != null) updates.course_id   = course_id;
+    if (courseName  !== undefined) updates.course_id = course_id;
     if (examDate    != null) updates.exam_date    = examDate;
     if (preparation != null) updates.preparation = preparation;
     if (difficulty  != null) updates.difficulty  =difficulty;
@@ -105,7 +107,8 @@ export async function updateExam(req, res) {
     );
     res.json({ message: "Exam updated" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -125,6 +128,7 @@ export async function deleteExam(req, res) {
     })
     res.json({ message: "Exam deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

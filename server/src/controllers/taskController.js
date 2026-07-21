@@ -35,7 +35,8 @@ export async function getTasks(req, res) {
       status          : t.status,
     })));
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -64,7 +65,8 @@ export async function createTask(req, res) {
     });
     res.status(201).json({ id: task.task_id, message: "Task created" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -74,9 +76,15 @@ export async function updateTask(req, res) {
     const course_id = await findOrCreateCourse(req.user.id, courseName);
 
     const updates = {};
+<<<<<<< HEAD
     if (title       != null) updates.title        = title;
     if (description != null) updates.description  = description;
     if (course_id   != null) updates.course_id    = course_id;
+=======
+    if (title       != null) updates.title       = title;
+    if (description != null) updates.description = description;
+    if (courseName  !== undefined) updates.course_id = course_id;
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
     if (dueDate     != null) updates.due_date     = dueDate;
     if (difficulty  != null) updates.difficulty   = difficulty;
     if (progress    != null) updates.progress      = progress;
@@ -105,7 +113,8 @@ export async function updateTask(req, res) {
     );
     res.json({ message: "Task updated" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -125,6 +134,7 @@ export async function deleteTask(req, res) {
     });
     res.json({ message: "Task deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

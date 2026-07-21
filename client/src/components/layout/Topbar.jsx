@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 import { Bell, Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
 import { useAuth } from "../../context/AuthContext";
+<<<<<<< HEAD
 import { Link } from "react-router-dom";
+=======
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 
 export default function Topbar({
   title,
@@ -13,7 +20,11 @@ export default function Topbar({
 }) {
   const { toggle } = useSidebar();
   const { user } = useAuth();
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
   const initials =
     user?.fullName
       ?.split(" ")
@@ -21,6 +32,10 @@ export default function Topbar({
       .slice(0, 2)
       .join("")
       .toUpperCase() || "U";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur-md sm:px-8">
       {/* Left */}

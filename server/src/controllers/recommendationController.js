@@ -40,6 +40,7 @@ export async function getRecommendation(req, res) {
         }
       ]
     });
+<<<<<<< HEAD
     const recommendation= result.choices[0].message.content;
     await AiRecommendation.create({
       user_id:req.user.id,
@@ -49,6 +50,15 @@ export async function getRecommendation(req, res) {
     res.json({recommendation});
   }catch(err){
     res.status(500).json({message:err.message})
+=======
+    const recommendation = result.choices[0].message.content;
+    await AiRecommendation.create({ user_id: uid, priority_score: 0, recommended_action: recommendation });
+    res.json({ recommendation });
+  } catch (err) {
+    console.error("[recommendation]", err.message);
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
   }
 }
 
@@ -67,17 +77,50 @@ export async function getLastRecommendation(req, res) {
       generatedAt:    row.get("generatedAt"),
     } : { recommendation: null });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
 // ── 2. Score generation ──────────────────────────────────────────
 export async function getScores(req, res) {
+<<<<<<< HEAD
   try{
     const data= await buildScheduleData(req.user.id);
     res.json(data.workload);
   }catch(err){
     res.status(500).json({message:err.message});
+=======
+  try {
+    const uid = req.user.id;
+    const wl  = await fetchWorkload(uid);
+    const all = [
+      ...wl.tasks.map(t => ({ ...t, type: "Task" })),
+      ...wl.assignments.map(a => ({ ...a, type: "Assignment" })),
+      ...wl.exams.map(e => ({ ...e, type: "Exam" })),
+    ];
+    if (!all.length) return res.json({ scores: [] });
+
+    const itemList = all.map((item, i) =>
+      `${i + 1}. [${item.type}] "${item.title}"${item.course ? ` (${item.course})` : ""}  due/date: ${item.due}${item.priority ? `  priority: ${item.priority}` : ""}${item.preparation !== undefined ? `  prep: ${item.preparation}%` : ""}`
+    ).join("\n");
+
+    const result = await client.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        { role: "system", content: "You are a study planner. Respond with valid JSON only." },
+        { role: "user",   content: `Score each item 0-100 by urgency. Today: ${new Date().toISOString().split("T")[0]}.\n\nItems:\n${itemList}\n\nReturn ONLY:\n{"scores":[{"index":1,"title":"...","type":"Task","score":85,"label":"Urgent","reason":"..."}]}\n\nLabels: Critical, Urgent, Moderate, Low` },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const parsed = JSON.parse(result.choices[0].message.content);
+    res.json({ scores: parsed.scores ?? [] });
+  } catch (err) {
+    console.error("[scores]", err.message);
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
   }
 }
 
@@ -116,6 +159,7 @@ export async function generateSchedule(req, res) {
 
     });
 
+<<<<<<< HEAD
 }
 //Add
     console.log("========== VALID SLOTS ==========");
@@ -291,10 +335,69 @@ export async function addScheduleSessions(req, res) {
              }
               catch (err) {
                  res.status(500).json({ message: err.message, }); } }
+=======
+    const parsed = JSON.parse(result.choices[0].message.content);
+    res.json({ sessions: parsed.sessions ?? [] });
+  } catch (err) {
+    console.error("[generateSchedule]", err.message);
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+// ── 4. Add generated sessions to schedule ────────────────────────
+export async function addScheduleSessions(req, res) {
+  try {
+    const uid = req.user.id;
+    const { sessions } = req.body;
+    if (!Array.isArray(sessions) || !sessions.length)
+      return res.status(400).json({ message: "No sessions provided." });
+    if (sessions.length > 50)
+      return res.status(400).json({ message: "A maximum of 50 sessions can be added at once." });
+
+    let added = 0;
+    for (const s of sessions) {
+      const duration = Number(s.duration ?? 1);
+      if (
+        typeof s.title !== "string" || !s.title.trim() || s.title.length > 150 ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(String(s.date)) ||
+        !/^([01]\d|2[0-3]):[0-5]\d$/.test(String(s.startTime)) ||
+        !Number.isFinite(duration) || duration <= 0 || duration > 12
+      ) continue;
+      let course_id = null;
+      if (s.courseName?.trim()) {
+        const [course] = await Course.findOrCreate({
+          where:    { user_id: uid, name: s.courseName.trim() },
+          defaults: { user_id: uid, name: s.courseName.trim() },
+        });
+        course_id = course.course_id;
+      }
+      await StudySession.create({
+        user_id: uid, course_id,
+        title:        s.title.trim(),
+        session_date: s.date,
+        start_time:   s.startTime,
+        duration,
+        color:        s.color    || "indigo",
+      });
+      added++;
+    }
+    if (added === 0) {
+      return res.status(400).json({ message: "No valid sessions were provided." });
+    }
+    res.json({ added });
+  } catch (err) {
+    console.error("[addSchedule]", err.message);
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 
 // ── 5. Chatbot ───────────────────────────────────────────────────
 export async function chatWithAI(req, res) {
   try {
+<<<<<<< HEAD
     const {messages}= req.body;
     const scheduleData= await buildScheduleData(req.user.id);
      if(!messages || !messages.length){
@@ -313,10 +416,44 @@ export async function chatWithAI(req, res) {
         ...messages
       ]
      
+=======
+    const uid = req.user.id;
+    const { messages } = req.body;
+    const safeMessages = Array.isArray(messages)
+      ? messages
+          .filter(m =>
+            ["user", "assistant"].includes(m?.role) &&
+            typeof m.content === "string" &&
+            m.content.trim()
+          )
+          .slice(-20)
+          .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }))
+      : [];
+    if (!safeMessages.length)
+      return res.status(400).json({ message: "No valid messages provided." });
+
+    const wl = await fetchWorkload(uid);
+    const context = (wl.tasks.length || wl.assignments.length || wl.exams.length)
+      ? `\n\nStudent's current workload:\n${workloadText(wl)}`
+      : "\n\nThe student has no pending workload currently.";
+
+    const result = await client.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        { role: "system", content: `You are a friendly academic study assistant for a Smart Study Planner app.${context}` },
+        ...safeMessages,
+      ],
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
     });
    
     res.json({reply:result.choices[0].message.content});
   } catch (err) {
+<<<<<<< HEAD
     res.status(500).json({message:err.message});
+=======
+    console.error("[chat]", err.message);
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
   }
 }

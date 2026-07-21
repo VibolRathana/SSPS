@@ -7,13 +7,17 @@ export const sequelize = new Sequelize(
   process.env.DB_USER,
   process.env.DB_PASS,
   {
-    host:    process.env.DB_HOST,
-    port:    Number(process.env.DB_PORT) || 3306,
+    host:     process.env.DB_HOST,
+    port:     Number(process.env.DB_PORT) || 3306,
     dialect: "mysql",
     logging: false,
+    // Ensure no SSL dialectOptions are active here for local machine testing
   }
 );
 
 sequelize.authenticate()
   .then(() => console.log("[db] MySQL connected via Sequelize"))
-  .catch(err  => { console.error("[db] Connection failed:", err.message); process.exit(1); });
+  .catch(err => {
+  console.error("[db] Connection failed:", err);
+  process.exit(1);
+});

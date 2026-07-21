@@ -3,9 +3,11 @@ import { Sparkles, RefreshCw, Clock, Send, Bot, User, Calendar, Plus } from "luc
 import api from "../../api/axios";
 import Topbar from "../../components/layout/Topbar";
 import Button from "../../components/ui/Button";
+import MarkdownText from "../../components/ui/MarkdownText";
 import { useAuth } from "../../context/AuthContext";
 
 // ── MarkdownText ─────────────────────────────────────────────────
+<<<<<<< HEAD
 function MarkdownText({ text }) {
   return (
     <div className="space-y-1.5 text-sm text-slate-700 leading-relaxed">
@@ -25,6 +27,21 @@ function MarkdownText({ text }) {
 }
 
 
+=======
+// ── Score label colors ────────────────────────────────────────────
+const SCORE_STYLE = {
+  Critical: "bg-red-100 text-red-700 border-red-200",
+  Urgent:   "bg-orange-100 text-orange-700 border-orange-200",
+  Moderate: "bg-amber-100 text-amber-700 border-amber-200",
+  Low:      "bg-slate-100 text-slate-600 border-slate-200",
+};
+const SCORE_BAR = {
+  Critical: "bg-red-500",
+  Urgent:   "bg-orange-400",
+  Moderate: "bg-amber-400",
+  Low:      "bg-slate-300",
+};
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 
 const SESSION_DOT = {
   indigo: "bg-indigo-500", orange: "bg-orange-400", green: "bg-green-500",
@@ -43,10 +60,14 @@ function ssGet(key, fallback) {
   try { const v = sessionStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
 }
 function ssSet(key, value) {
+<<<<<<< HEAD
   try { sessionStorage.setItem(key, JSON.stringify(value)); }
   catch(err){
     console.error(err);
   }
+=======
+  try { sessionStorage.setItem(key, JSON.stringify(value)); } catch { /* Storage may be disabled. */ }
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -62,7 +83,7 @@ export default function AIRecommendation() {
   const [recommendation, setRecommendation] = useState(() => ssGet("ai_plan", null));
   const [generatedAt,    setGeneratedAt]    = useState(() => ssGet("ai_plan_at", null));
   const [planLoading,    setPlanLoading]    = useState(false);
-  const [planInit,       setPlanInit]       = useState(true);
+  const [planInit,       setPlanInit]       = useState(() => !recommendation);
 
   
   // ── Schedule tab ──
@@ -83,8 +104,12 @@ export default function AIRecommendation() {
 
   // load last plan on mount (only if not already cached)
   useEffect(() => {
+<<<<<<< HEAD
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (recommendation) { setPlanInit(false); return; }
+=======
+    if (recommendation) return;
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
     api.get("/recommendations")
       .then(r => {
         if (r.data.recommendation) {
@@ -94,7 +119,7 @@ export default function AIRecommendation() {
           ssSet("ai_plan_at", r.data.generatedAt);
         }
       })
-      .catch(() => {})
+      .catch(() => { /* The empty state is shown when loading fails. */ })
       .finally(() => setPlanInit(false));
   }, [recommendation]);
 
@@ -144,8 +169,12 @@ ssSet("ai_sessions", newSessions);
         ssSet("ai_added", [...next]);
         return next;
       });
+<<<<<<< HEAD
     // eslint-disable-next-line no-unused-vars
     } catch (err) { alert("Could not add session."); }
+=======
+    } catch { alert("Could not add session."); }
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
     finally { setAddingIdx(null); }
   }
 
@@ -157,8 +186,12 @@ ssSet("ai_sessions", newSessions);
       setAddedIds(allIdx);
       ssSet("ai_added", [...allIdx]);
       alert(`${data.added} sessions added to your schedule!`);
+<<<<<<< HEAD
     // eslint-disable-next-line no-unused-vars
     } catch (err) { alert("Could not add sessions."); }
+=======
+    } catch { alert("Could not add sessions."); }
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
     finally { setAddingAll(false); }
   }
 
@@ -178,8 +211,12 @@ ssSet("ai_sessions", newSessions);
         ssSet("ai_chat", next);
         return next;
       });
+<<<<<<< HEAD
     // eslint-disable-next-line no-unused-vars
     } catch (err) {
+=======
+    } catch {
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
       setMessages(prev => {
         const next = [...prev, { role: "assistant", content: "Sorry, I couldn't respond. Please try again." }];
         ssSet("ai_chat", next);

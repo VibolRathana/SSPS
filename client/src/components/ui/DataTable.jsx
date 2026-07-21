@@ -1,15 +1,19 @@
+<<<<<<< HEAD
 // eslint-disable-next-line no-unused-vars
 import React, { useMemo, useState } from "react";
+=======
+import { useMemo, useState } from "react";
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 import { Search } from "lucide-react";
 
 export default function DataTable({
-  columns = [],
-  data = [],
-  searchable = true,
+  columns           = [],
+  data              = [],
+  searchable        = true,
   searchPlaceholder = "Search…",
-  action = null,
-  rowKey = "id",
-  emptyText = "No records yet.",
+  action            = null,
+  rowKey            = "id",
+  emptyText         = "No records yet.",
 }) {
   const [query, setQuery] = useState("");
 

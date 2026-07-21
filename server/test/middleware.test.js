@@ -56,4 +56,8 @@ test("rate limiter rejects requests over the configured maximum", () => {
   assert.equal(allowed, 2);
   assert.equal(rejected.statusCode, 429);
   assert.ok(Number(rejected.headers["Retry-After"]) > 0);
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10

@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./src/config/swagger.js";
 
 
 import { QueryTypes } from "sequelize";
@@ -18,6 +20,8 @@ import reminderRoutes from "./src/routes/reminderRoutes.js";
 import recommendationRoutes from "./src/routes/recommendationRoutes.js";
 import scheduleRoutes from "./src/routes/scheduleRoutes.js";
 import dashboardRoutes from "./src/routes/dashboardRoutes.js";
+import notificationRoutes from "./src/routes/notificationRoutes.js";
+import { sendPushToUser } from "./src/controllers/notificationController.js";
 import { sendReminderEmail } from "./src/services/emailService.js";
 import { sendPushToUser } from "./src/controllers/notificationController.js";
 import notificationRoutes from "./src/routes/notificationRoutes.js";
@@ -30,6 +34,11 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173,http
   .filter(Boolean);
 
 
+const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173,http://127.0.0.1:5173")
+  .split(",")
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
 // Middleware
 app.use(cors({
   origin(origin, callback) {
@@ -40,6 +49,12 @@ app.use(cors({
   },
 }));
 app.use(express.json({ limit: "100kb" }));
+<<<<<<< HEAD
+=======
+
+// Swagger UI
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 
 // Health check
 app.get("/api/health", async (req, res) => {
@@ -47,7 +62,8 @@ app.get("/api/health", async (req, res) => {
     const [rows] = await sequelize.query("SELECT 1 + 1 AS result");
     res.json({ status: "ok", db: "connected", test: rows[0].result });
   } catch (err) {
-    res.status(500).json({ status: "error", message: err.message });
+    console.error("[health]", err);
+    res.status(500).json({ status: "error", message: "Database unavailable" });
   }
 });
 
@@ -62,9 +78,21 @@ app.use("/api/reminders", reminderRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+<<<<<<< HEAD
 app.use("/api/priorities",priorityRoutes);
 app.use("/api/study-availability" , studyAvailabilityRoutes);
 app.use("/api/notifications", notificationRoutes);
+=======
+app.use("/api/notifications", notificationRoutes);
+
+app.use((err, req, res, next) => {
+  console.error("[server]", err);
+  const status = Number(err.status) || 500;
+  res.status(status).json({
+    message: status < 500 ? err.message : "Internal server error",
+  });
+});
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 
 // Start server
 const PORT = process.env.PORT || 5000;

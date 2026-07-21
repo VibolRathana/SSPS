@@ -109,6 +109,7 @@ export const PushSubscription = sequelize.define("PushSubscription", {
   auth:     { type: DataTypes.TEXT,    allowNull: false },
 }, { tableName: "push_subscriptions", createdAt: "created_at", updatedAt: false });
 
+<<<<<<< HEAD
 
 
 // ___PriorityAi______________________________________________
@@ -193,6 +194,8 @@ export const PriorityResult = sequelize.define(
 
  )
 
+=======
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 // ── Associations ──────────────────────────────────────────────────
 User.hasMany(Course,            { foreignKey: "user_id" });
 Course.belongsTo(User,          { foreignKey: "user_id" });
@@ -223,6 +226,7 @@ Course.hasMany(StudySession,    { foreignKey: "course_id" });
 User.hasMany(AiRecommendation,  { foreignKey: "user_id" });
 AiRecommendation.belongsTo(User,{ foreignKey: "user_id" });
 
+<<<<<<< HEAD
 User.hasMany(PriorityResult,    {foreignKey:"user_id"});
 PriorityResult.belongsTo(User,  {foreignKey:"user_id"});
 User.hasMany(StudyAvailability, {foreignKey:"user_id"});
@@ -230,3 +234,7 @@ User.belongsTo(User,            {foreignKey:"user_id"});
 
 User.hasMany(PushSubscription,  { foreignKey: "user_id" });
 PushSubscription.belongsTo(User,{ foreignKey: "user_id" });
+=======
+User.hasMany(PushSubscription,  { foreignKey: "user_id" });
+PushSubscription.belongsTo(User,{ foreignKey: "user_id" });
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10

@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 // eslint-disable-next-line no-unused-vars
 import React from "react";
+=======
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 import { NavLink } from "react-router-dom";
 import { LogOut, X } from "lucide-react";
 import { useSidebar } from "../../context/SidebarContext";
@@ -10,16 +13,14 @@ export default function Sidebar({ items = [], user, onLogout, label = "Workspace
   return (
     <aside className={`
       fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col
-      bg-linear-to-b from-indigo-500 to-indigo-700 px-4 py-6 text-white
+      bg-linear-to-b  from-red-700 to-indigo-500 px-4 py-6 text-white
       transition-transform duration-300 ease-in-out
       md:sticky md:top-0 md:h-screen md:translate-x-0 md:w-60
       ${open ? "translate-x-0" : "-translate-x-full"}
     `}>
-      {/* Logo row */}
       <div className="mb-4 flex items-center gap-3 border-b border-white/15 px-2 pb-5">
-        <div className="grid h-9 w-9 place-items-center rounded-xl bg-white/15 text-lg font-bold">P</div>
-        <span className="flex-1 text-lg font-bold tracking-tight">Planner</span>
-        {/* Close button — mobile only */}
+        <div className="grid h-9 w-9 place-items-center rounded-xl bg-white/15 text-lg font-bold">S</div>
+        <span className="flex-1 text-lg font-bold tracking-tight">ScholarSync</span>
         <button
           onClick={close}
           className="grid h-8 w-8 place-items-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white md:hidden"

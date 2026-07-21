@@ -1,8 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, X, Sparkles, RefreshCw, Clock } from "lucide-react";
 import api from "../../api/axios";
 import Topbar from "../../components/layout/Topbar";
 import Button from "../../components/ui/Button";
+import MarkdownText from "../../components/ui/MarkdownText";
 
 const MONTH_NAMES = [
   "January","February","March","April","May","June",
@@ -37,36 +38,6 @@ function dateKey(d) {
 
 const EMPTY_FORM = { title: "", courseName: "", date: "", startTime: "", duration: "1", color: "indigo" };
 
-function MarkdownText({ text }) {
-  return (
-    <div className="space-y-1.5 text-sm text-slate-700 leading-relaxed">
-      {text.split("\n").map((line, i) => {
-        if (!line.trim()) return <div key={i} className="h-1" />;
-        const html = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-        if (line.trim().startsWith("- ") || line.trim().startsWith("* ")) {
-          return (
-            <div key={i} className="flex gap-2">
-              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
-              <span dangerouslySetInnerHTML={{ __html: html.replace(/^[-*]\s/, "") }} />
-            </div>
-          );
-        }
-        if (/^\d+\./.test(line.trim())) {
-          return (
-            <div key={i} className="flex gap-2">
-              <span className="shrink-0 font-semibold text-indigo-600">{line.match(/^\d+/)[0]}.</span>
-              <span dangerouslySetInnerHTML={{ __html: html.replace(/^\d+\.\s*/, "") }} />
-            </div>
-          );
-        }
-        if (line.startsWith("###")) return <p key={i} className="font-bold text-slate-900 mt-2" dangerouslySetInnerHTML={{ __html: html.replace(/^###\s*/, "") }} />;
-        if (line.startsWith("##"))  return <p key={i} className="font-bold text-slate-900 text-base mt-2" dangerouslySetInnerHTML={{ __html: html.replace(/^##\s*/, "") }} />;
-        return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />;
-      })}
-    </div>
-  );
-}
-
 export default function Schedule() {
   const today = useMemo(() => {
     const d = new Date();
@@ -87,8 +58,18 @@ export default function Schedule() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiInit,    setAiInit]    = useState(true);
 
+<<<<<<< HEAD
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadSessions(); }, [viewDate]);
+=======
+  const loadSessions = useCallback(() => {
+    api.get(`/schedule?year=${viewDate.getFullYear()}&month=${viewDate.getMonth() + 1}`)
+      .then(res => setSessions(res.data))
+      .catch(() => { /* Keep the existing schedule when refresh fails. */ });
+  }, [viewDate]);
+
+  useEffect(() => { loadSessions(); }, [loadSessions]);
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 
   useEffect(() => {
     api.get("/recommendations")
@@ -113,12 +94,6 @@ export default function Schedule() {
     } finally {
       setAiLoading(false);
     }
-  }
-
-  function loadSessions() {
-    api.get(`/schedule?year=${viewDate.getFullYear()}&month=${viewDate.getMonth() + 1}`)
-      .then(res => setSessions(res.data))
-      .catch(() => {});
   }
 
   // Build 6-week Mon-Sun grid
@@ -198,9 +173,14 @@ export default function Schedule() {
     try {
       await api.delete(`/schedule/${id}`);
       loadSessions();
+<<<<<<< HEAD
     
     } catch(err){
       console.error(err);
+=======
+    } catch {
+      alert("Failed to delete session.");
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
     }
   }
 

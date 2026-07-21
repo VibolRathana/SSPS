@@ -1,6 +1,7 @@
 import webpush from "web-push";
 import { PushSubscription } from "../models/index.js";
 
+<<<<<<< HEAD
 // Only configure web-push if VAPID keys exist
 if (
   process.env.VAPID_PUBLIC_KEY &&
@@ -14,6 +15,13 @@ if (
 } else {
   console.log("Push notifications disabled: VAPID keys not configured.");
 }
+=======
+webpush.setVapidDetails(
+  "mailto:" + process.env.EMAIL_USER,
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
+);
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 
 export async function subscribe(req, res) {
   try {
@@ -69,4 +77,8 @@ export async function sendPushToUser(userId, payload) {
     }
   }
   return delivered;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10

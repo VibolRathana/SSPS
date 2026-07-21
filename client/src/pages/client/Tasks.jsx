@@ -9,8 +9,12 @@ import Modal from "../../components/ui/Modal";
 
 
 const statusVariant = { Pending: "pending", "In Progress": "progress", Completed: "done" };
+<<<<<<< HEAD
 const EMPTY_FORM = { title: "", courseName: "", difficulty:"Medium",progress:0,estimated_hours:1, dueDate: "", status: "Pending"};
 
+=======
+const EMPTY_FORM    = { title: "", courseName: "", priority: "Medium", dueDate: "", status: "Pending" };
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 
 export default function Tasks() {
   const [tasks, setTasks]       = useState([]);
@@ -79,8 +83,12 @@ export default function Tasks() {
     try {
       await api.delete(`/tasks/${id}`);
       loadTasks();
+<<<<<<< HEAD
     // eslint-disable-next-line no-unused-vars
     } catch (error) {
+=======
+    } catch {
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
       alert("Could not delete task");
     }
   }
@@ -194,7 +202,7 @@ export default function Tasks() {
           <>
             <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
             <Button onClick={handleCreate} disabled={saving}>{saving ? "Saving…" : "Create task"}</Button>
-          </>
+          </> 
         }
       >
         <form onSubmit={handleCreate}>{formFields(false)}</form>

@@ -5,6 +5,7 @@ import Topbar from "../../components/layout/Topbar";
 import DataTable from "../../components/ui/DataTable";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
+import { useAuth } from "../../context/AuthContext";
 
 function ProgressBar({ value }) {
   return (
@@ -35,6 +36,14 @@ export default function Exams() {
   const [editItem, setEditItem] = useState(null);
   const [saving, setSaving]     = useState(false);
   const [form, setForm]         = useState(EMPTY_FORM);
+  const { user } = useAuth();
+   const initials =
+    user?.fullName
+      ?.split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "U";
 
   function load() {
     setLoading(true);
@@ -95,8 +104,12 @@ export default function Exams() {
     try {
       await api.delete(`/exams/${id}`);
       load();
+<<<<<<< HEAD
     // eslint-disable-next-line no-unused-vars
     } catch (err) {
+=======
+    } catch {
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
       alert("Could not delete exam");
     }
   }
@@ -216,7 +229,9 @@ export default function Exams() {
 
   return (
     <>
-      <Topbar title="Exams" subtitle={subtitle} user={{ initials: "AM" }} />
+      <Topbar title="Exams" 
+      subtitle={subtitle} 
+      user={{ initials }} />
       <div className="p-4 sm:p-6 lg:p-8">
         {loading ? (
           <p className="text-sm text-slate-500">Loading…</p>
@@ -271,3 +286,4 @@ export default function Exams() {
     </>
   );
 }
+

@@ -17,5 +17,17 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    rules: {
+      // Data-loading effects intentionally call stable loader functions.
+      'react-hooks/set-state-in-effect': 'off',
+      // Context modules export both providers and their matching hooks.
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    files: ['public/sw.js'],
+    languageOptions: {
+      globals: globals.serviceworker,
+    },
   },
 ])

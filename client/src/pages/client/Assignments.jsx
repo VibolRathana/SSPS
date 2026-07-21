@@ -77,8 +77,12 @@ export default function Assignments() {
     try {
       await api.delete(`/assignments/${id}`);
       load();
+<<<<<<< HEAD
     // eslint-disable-next-line no-unused-vars
     } catch (err) {
+=======
+    } catch {
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
       alert("Could not delete assignment");
     }
   }

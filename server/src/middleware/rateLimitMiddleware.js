@@ -20,4 +20,8 @@ export function createRateLimit({ windowMs, max }) {
 
     next();
   };
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10

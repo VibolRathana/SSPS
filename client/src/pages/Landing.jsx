@@ -17,29 +17,24 @@ export default function Landing() {
     <div className="min-h-screen bg-[#EEEEFF] flex items-center">
       <div className="max-w-6xl mx-auto px-8 py-16 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-        {/* ── Left ─────────────────────────────────────────────── */}
         <div>
-          {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-200 bg-white text-sm text-slate-700 mb-8">
             <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" />
             Built for university students
           </div>
 
-          {/* Headline */}
           <h1 className="text-5xl lg:text-6xl font-black text-slate-900 leading-tight mb-6">
             Smart Study{" "}
             <span className="text-indigo-600">Planner</span>{" "}
             System
           </h1>
 
-          {/* Sub-copy */}
           <p className="text-lg text-slate-600 leading-relaxed mb-10 max-w-md">
             One place for every task, assignment, and exam —
             with AI that tells you what to do next, so nothing slips
             through the cracks.
           </p>
 
-          {/* CTAs */}
           <div className="flex items-center gap-4 mb-14">
             <Link
               to="/signup"
@@ -58,7 +53,6 @@ export default function Landing() {
             </Link>
           </div>
 
-          {/* Stats */}
           <div className="flex gap-10">
             <div>
               <div className="text-3xl font-black text-slate-900">10k+</div>
@@ -75,14 +69,11 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* ── Right ────────────────────────────────────────────── */}
         <div className="relative flex justify-center lg:justify-end">
-          {/* Blurred blob */}
           <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full bg-indigo-300/50 blur-3xl pointer-events-none" />
 
-          {/* Card */}
+
           <div className="relative bg-white rounded-3xl shadow-xl p-6 w-full max-w-md">
-            {/* Card header */}
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-slate-800">Up next today</h2>
               <span className="text-sm font-semibold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
@@ -90,11 +81,9 @@ export default function Landing() {
               </span>
             </div>
 
-            {/* Task list */}
             <div className="divide-y divide-slate-100">
               {tasks.map((t) => (
                 <div key={t.title} className="flex items-center gap-4 py-4">
-                  {/* Colored icon */}
                   <div className="flex flex-col gap-1 shrink-0">
                     {[...Array(3)].map((_, i) => (
                       <div
@@ -105,7 +94,6 @@ export default function Landing() {
                     ))}
                   </div>
 
-                  {/* Title + time */}
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-slate-800 text-sm">{t.title}</div>
                     <div className="text-xs text-slate-400 mt-0.5">{t.time}</div>

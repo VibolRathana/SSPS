@@ -1,10 +1,17 @@
+<<<<<<< HEAD
 // eslint-disable-next-line no-unused-vars
 import React from "react";
+=======
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutGrid, CheckSquare, FileText, Calendar,
+<<<<<<< HEAD
   Bell, Brain, GraduationCap, Users, ShieldCheck,Clock3,Target,BellRing, X,
+=======
+  Bell, Brain, GraduationCap, Users, BellRing, X,
+>>>>>>> 3181c10820689d94d41d47be843bb8cf678f2f10
 } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { useAuth } from "../../context/AuthContext";
@@ -25,9 +32,8 @@ const studentNav = [
 ];
 
 const adminNav = [
-  { to: "/admin",          label: "Dashboard", icon: LayoutGrid  },
-  { to: "/admin/users",    label: "Users",     icon: Users       },
-  { to: "/admin/security", label: "Security",  icon: ShieldCheck },
+  { to: "/admin",       label: "Dashboard", icon: LayoutGrid },
+  { to: "/admin/users", label: "Users",     icon: Users      },
 ];
 
 const BANNER_KEY = "push_banner_dismissed";
